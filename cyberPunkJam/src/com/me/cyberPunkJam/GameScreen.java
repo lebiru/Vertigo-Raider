@@ -1,10 +1,14 @@
 package com.me.cyberPunkJam;
 
 import java.awt.event.KeyEvent;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Random;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Sound;
@@ -28,6 +32,7 @@ public class GameScreen implements Screen, InputProcessor
 	//Terminal Logic Variables///////////////////////
 
 	//For all lines
+	String textFromURL = "";
 	String []textLines = {}; //All the lines from a given text
 	int textLinesSize = 0;
 	int currentLinePointer = 0;
@@ -65,10 +70,54 @@ public class GameScreen implements Screen, InputProcessor
 		if(handle.exists())
 		{
 			System.out.println("File exists");
-			processText(handle.readString());
+			//processText(handle.readString());
+			//first get the text via Online
+			textFromURL = ReadTextFromURL();
+			//then process Text
+			processText(textFromURL);
 		}
 
 	}
+
+	/**
+	 * Credits to Byron Kiourtzoglou
+	 * http://examples.javacodegeeks.com/core-java/net/url/read-text-from-url/
+	 * @return
+	 */
+	public String ReadTextFromURL() 
+	{
+
+		String holder = "";
+
+		try {
+
+			URL url = new URL("http://www.cs.miami.edu/~burt/learning/Csc521.061/notes/melissa.txt");
+
+			// read text returned by server
+			BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
+
+			String line;
+			while ((line = in.readLine()) != null) 
+			{
+				holder += line;
+			}
+			in.close();
+			return holder;
+
+		}
+		catch (MalformedURLException e) 
+		{
+			System.out.println("Malformed URL: " + e.getMessage());
+			return "ERROR";
+		}
+		catch (IOException e) 
+		{
+			System.out.println("I/O Error: " + e.getMessage());
+			return "ERROR";
+		}
+
+	}
+
 
 	//TODO create a method for when an end of current Line is reached
 
@@ -87,7 +136,7 @@ public class GameScreen implements Screen, InputProcessor
 		textLinesSize = textLines.length - 1;
 		//Remove Ctrl+Enter, Enter characters
 		cleanUpTextLines(textLines);
-		
+
 		//The current line we are at, used as a pointer
 		currentLinePointer = 0;
 
@@ -108,15 +157,15 @@ public class GameScreen implements Screen, InputProcessor
 		//for each text line
 		for(int currentLine = 0; currentLine < textLines2.length; currentLine++)
 		{
-//			//for each character in a text line
-//			for(int currentChar = 0; currentChar <= textLines2[currentLine].length(); currentChar++)
-//			{
-//				textLines2[currentLine].
-//			}
+			//			//for each character in a text line
+			//			for(int currentChar = 0; currentChar <= textLines2[currentLine].length(); currentChar++)
+			//			{
+			//				textLines2[currentLine].
+			//			}
 			textLines2[currentLine] = textLines2[currentLine].replace("\n", " "); 
 			textLines2[currentLine] = textLines2[currentLine].replace("\r", ""); 
 		}
-		
+
 	}
 
 	/**
