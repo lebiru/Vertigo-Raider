@@ -1,12 +1,13 @@
 package com.me.cyberPunkJam;
 
 import com.badlogic.gdx.Game;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
 
 public class VertigoRaiderGame extends Game {
 	private OrthographicCamera camera;
@@ -17,16 +18,16 @@ public class VertigoRaiderGame extends Game {
 	private com.me.cyberPunkJam.MainMenuScreen mainMenuScreen;
 	private com.me.cyberPunkJam.GameScreen gameScreen;
 	private com.me.cyberPunkJam.GameOverScreen gameOverScreen;
-	float w = 0;
-	float h = 0;
+	static final int VIRTUAL_WIDTH = 1377;
+	static final int VIRTUAL_HEIGHT = 786;
+	private static final float ASPECT_RATIO = (float)VIRTUAL_WIDTH/(float)VIRTUAL_HEIGHT;
+	Rectangle viewport;
 	
 	public void create() 
 	{		
-		this.w = Gdx.graphics.getWidth();
-		this.h = Gdx.graphics.getHeight();
 		
-		camera = new OrthographicCamera(1, h/w);
 		batch = new SpriteBatch();
+		camera = new OrthographicCamera(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
 		
 		//use libgdx's default Arial font.
 		font = new BitmapFont();
@@ -53,7 +54,35 @@ public class VertigoRaiderGame extends Game {
 	}
 
 	@Override
-	public void resize(int width, int height) {
+	public void resize(int width, int height) 
+	{
+		//calculate new viewport; CREDITS TO http://www.acamara.es/blog/2012/02/
+		//keep-screen-aspect-ratio-with-different-resolutions-using-libgdx/
+		
+		float aspectRatio = (float)width/(float)height;
+		float scale = 1f;
+		Vector2 crop = new Vector2(0f, 0f);
+		
+		if(aspectRatio > ASPECT_RATIO)
+        {
+            scale = (float)height/(float)VIRTUAL_HEIGHT;
+            crop.x = (width - VIRTUAL_WIDTH*scale)/2f;
+        }
+        else if(aspectRatio < ASPECT_RATIO)
+        {
+            scale = (float)width/(float)VIRTUAL_WIDTH;
+            crop.y = (height - VIRTUAL_HEIGHT*scale)/2f;
+        }
+        else
+        {
+            scale = (float)width/(float)VIRTUAL_WIDTH;
+        }
+
+        float w = (float)VIRTUAL_WIDTH*scale;
+        float h = (float)VIRTUAL_HEIGHT*scale;
+        viewport = new Rectangle(crop.x, crop.y, w, h);
+		
+		
 	}
 
 	@Override
