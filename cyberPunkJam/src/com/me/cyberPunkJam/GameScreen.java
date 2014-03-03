@@ -2,14 +2,7 @@ package com.me.cyberPunkJam;
 
 import java.awt.Point;
 import java.awt.event.KeyEvent;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Random;
-
-import javax.swing.GroupLayout.Alignment;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
@@ -23,6 +16,8 @@ import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.TimeUtils;
 
 public class GameScreen implements Screen, InputProcessor
 {
@@ -48,6 +43,15 @@ public class GameScreen implements Screen, InputProcessor
 	Point endCorner = new Point();
 
 	Hero hero;
+	
+	Array<Citizen> citizens;
+	long lastCitizenTime;
+	
+	public void spawnCitizen()
+	{
+		citizens.add(new Citizen(atlas));
+		lastCitizenTime = TimeUtils.nanoTime();
+	}
 
 	TextureRegion agentRegion;
 	Animation agentAnimation;
@@ -131,6 +135,8 @@ public class GameScreen implements Screen, InputProcessor
 		//calculate distance hero needs to cross
 		term.calculateHeroTravel(startCorner, endCorner);
 
+		citizens = new Array<Citizen>();
+		spawnCitizen();
 
 
 	}
@@ -169,6 +175,14 @@ public class GameScreen implements Screen, InputProcessor
 		hero.heroAnimatedSprite.draw(batch);
 
 		agentAnimatedSprite.draw(batch);
+		
+		for(Citizen c : citizens)
+		{
+			c.moveCitizen();
+			c.citizenAnimatedSprite.draw(batch);
+			c.checkOffScreen(vgr.VIRTUAL_WIDTH, vgr.VIRTUAL_HEIGHT);
+		}
+
 
 		vgr.font.setScale(1f);
 
@@ -287,9 +301,6 @@ public class GameScreen implements Screen, InputProcessor
 				term.numOfCharactersTypedTotal++;
 			}
 		}
-
-
-
 
 		return false;
 	}
