@@ -18,7 +18,7 @@ public class VertigoRaiderGame extends Game {
 	private com.me.cyberPunkJam.MainMenuScreen mainMenuScreen;
 	private com.me.cyberPunkJam.GameScreen gameScreen;
 	private com.me.cyberPunkJam.GameOverScreen gameOverScreen;
-	static final int VIRTUAL_WIDTH = 1377;
+	static final int VIRTUAL_WIDTH = 1366;
 	static final int VIRTUAL_HEIGHT = 786;
 	private static final float ASPECT_RATIO = (float)VIRTUAL_WIDTH/(float)VIRTUAL_HEIGHT;
 	Rectangle viewport;

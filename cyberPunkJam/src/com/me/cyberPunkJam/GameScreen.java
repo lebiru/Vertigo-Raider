@@ -9,9 +9,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Random;
 
+import javax.swing.GroupLayout.Alignment;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL10;
@@ -26,65 +29,44 @@ public class GameScreen implements Screen, InputProcessor
 	private SpriteBatch batch;
 	private OrthographicCamera camera;
 	private VertigoRaiderGame vgr;
+	private Terminal term;
 
 	private Sound badType;
 	private Sound goodType;
+
+	private Music gameTheme;
 
 	TextureAtlas atlas;
 	TextureRegion buildingRegionStart;
 	float buildingRegionStartX = 0;
 	float buildingRegionStartY = 0;
 	Point startCorner = new Point();
-	
+
 	TextureRegion buildingRegionEnd;
 	float buildingRegionEndX = 0;
 	float buildingRegionEndY = 0;
 	Point endCorner = new Point();
-	
-	TextureRegion heroRegion;
-	Animation heroAnimation;
-	AnimatedSprite heroAnimatedSprite;
-	float heroX = 0;
-	float heroY = 0;
-	
+
+	Hero hero;
+
+	TextureRegion agentRegion;
+	Animation agentAnimation;
+	AnimatedSprite agentAnimatedSprite;
+	float agentX = 0;
+	float agentY = 0;
+
 	TextureRegion ropeRegion;
 
-	float pixelsHeroNeedsToTravel = 200; //this should be the distance between building corners
-	float pixelsPerMove = 0; //every time user types a correct word, player must move this amount of pixels.
-	
-	//Terminal Logic Variables///////////////////////
-
-	//For all lines
-	String textFromURL = "";
-	String []textLines = {}; //All the lines from a given text
-	int textLinesSize = 0;
-	int currentLinePointer = 0;
-
-	//For an individual line
-	String currentLine = "";
-	char[] currentLineArray = {};
-	int sizeOfCurrentLineArray = 0;
-	int currentCharacterPointer = 0;
-	char currentCharacter;
-	char currentTypedCharacter;
-
-	float percentageComplete = 0;
-	float numOfCharactersInText = 0;
-	float numOfCharactersTypedCorrectly = 0;
-	float numOfCharactersTypedTotal = 0;
-	float numOfCharactersTypedIncorrectly = 0; 
-
-	////////////////////////////////////////////////////
 	Random ran = new Random();
-	
+
 
 	public GameScreen(final VertigoRaiderGame vgr) 
 	{
 		this.vgr = vgr;
 		this.batch = vgr.batch;
 		this.camera = new OrthographicCamera();
-		//camera.setToOrtho(false, vgr.w, vgr.VIRTUAL_HEIGHT);
 		Gdx.input.setInputProcessor(this);
+
 
 		vgr.font.setColor(Color.GREEN);
 		vgr.font.setScale(1.0f);
@@ -93,177 +75,66 @@ public class GameScreen implements Screen, InputProcessor
 		goodType = Gdx.audio.newSound(Gdx.files.internal("Sound/FX/type.wav"));
 		badType = Gdx.audio.newSound(Gdx.files.internal("Sound/FX/hit.wav"));
 
+
+		//LOADING MUSIC
+		gameTheme = Gdx.audio.newMusic(Gdx.files.internal("Sound/Music/gameTheme.ogg"));
+		gameTheme.setLooping(true);
+
 		//LOADING IMAGES
 		atlas = new TextureAtlas("Art/Atlas.txt");
-		
+
+
 		//buildings
 		buildingRegionStart = atlas.findRegion("building");
 		buildingRegionEnd = atlas.findRegion("building");
-		
+
 		//setting building locations
 		buildingRegionStartX = -100;
 		buildingRegionStartY = -400;
-		
+
 		buildingRegionEndX = vgr.VIRTUAL_WIDTH - 200;
 		buildingRegionEndY = -400;
-		
-		//hero
-		heroRegion = atlas.findRegion("hero");
-		TextureRegion[][] heroTR = heroRegion.split(100, 150);
-		heroAnimation = new Animation(0.5f, heroTR[0]);
-		heroAnimation.setPlayMode(Animation.LOOP_PINGPONG);
-		heroAnimatedSprite = new AnimatedSprite(heroAnimation);
-		
-		heroX = buildingRegionStart.getRegionX() + buildingRegionStart.getRegionWidth();
-		heroY = vgr.VIRTUAL_HEIGHT - (buildingRegionStart.getRegionHeight() - vgr.VIRTUAL_HEIGHT);
-		
+
+		/**
+		 * Corner points are the starting and ending points for the hero. 
+		 * Start Point: Where the hero starts
+		 * End Point: Where the hero needs to cross to win.
+		 */
+		//Setting up corner points
+		startCorner.setLocation(308, vgr.VIRTUAL_HEIGHT - 235);
+		endCorner.setLocation(1154, vgr.VIRTUAL_HEIGHT - 235);
+
+		//Loading Terminal
+		term = new Terminal();
+
+		hero = new Hero(atlas, startCorner.x, startCorner.y);
+
+
+		//agent
+		agentRegion = atlas.findRegion("agent");
+		TextureRegion[][] agentTR = agentRegion.split(100, 150);
+		agentAnimation = new Animation(5.0f, agentTR[0]);
+		agentAnimation.setPlayMode(Animation.LOOP_PINGPONG);
+		agentAnimatedSprite = new AnimatedSprite(agentAnimation);
+		agentX = 50;
+		agentY = vgr.VIRTUAL_HEIGHT - agentAnimatedSprite.getHeight();
+
+
 		//rope
 		ropeRegion = atlas.findRegion("rope");
-		
+
 
 		//first get the text via Online
-		textFromURL = ReadTextFromURL();
+		term.textFromURL = term.ReadTextFromURL();
 		//then process Text
-		processText(textFromURL);
+		term.processText(term.textFromURL);
+		//calculate distance hero needs to cross
+		term.calculateHeroTravel(startCorner, endCorner);
 
 
-	}
-
-	/**
-	 * Credits to Byron Kiourtzoglou
-	 * http://examples.javacodegeeks.com/core-java/net/url/read-text-from-url/
-	 * @return
-	 */
-	public String ReadTextFromURL() 
-	{
-
-		String holder = "";
-		URL url;
-
-		try {
-
-			//Viruses in PlainText via URL
-
-			//Zeus
-			//url = new URL("https://gist.githubusercontent.com/zen6/9300973/raw/682f04f8d6a7723887d674e2496cf956e7bffedc/Zeus");
-
-			//Melissa
-			//url = new URL("https://gist.githubusercontent.com/zen6/9300956/raw/e512a79ab7a63dd284155c9ed0b79d9e5e3b7183/Melissa");
-
-			//iloveyou
-			//url = new URL("https://gist.githubusercontent.com/zen6/9299803/raw/af667792c177130a27fec2b61d3342bea2cbba38/iloveyou");
-
-			//iloveyou
-			url = new URL("https://gist.githubusercontent.com/zen6/9301336/raw/9e6aeb022a4080d6b6a9039560addd37e4adf42c/test");
-
-			
-			// read text returned by server
-			BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
-
-			String line;
-			while ((line = in.readLine()) != null) 
-			{
-				holder += line + "\n"; //adding a newline character for readability
-			}
-			in.close();
-			return holder;
-
-		}
-		catch (MalformedURLException e) 
-		{
-			System.out.println("Malformed URL: " + e.getMessage());
-			return "ERROR";
-		}
-		catch (IOException e) 
-		{
-			System.out.println("I/O Error: " + e.getMessage());
-			return "ERROR";
-		}
 
 	}
 
-
-	//TODO create a method for when an end of current Line is reached
-
-	/**
-	 * Called whenever a new text needs to be processed for all "Terminal" variables. You should
-	 * be calling this whenever a new text file needs to be processed. 
-	 * @param textFileString
-	 */
-	private void processText(String textFileString) 
-	{
-		//int charactersPerLine = 80;
-		//All the lines for the text in a string array
-		//textLines = splitStringEvery(textFileString, charactersPerLine);
-		
-		textLines = textFileString.split("\\n");
-		System.out.println(textLines.length);
-		//The number of lines from the text
-		textLinesSize = textLines.length - 1;
-		//Remove Ctrl+Enter, Enter characters
-		cleanUpTextLines(textLines);
-		numOfCharactersInText = numOfCharInText(textLines);
-		pixelsPerMove = pixelsHeroNeedsToTravel / numOfCharactersInText; 
-
-		//The current line we are at, used as a pointer
-		currentLinePointer = 0;
-
-		currentLine = textLines[currentLinePointer];
-		currentLineArray = currentLine.toCharArray();
-		sizeOfCurrentLineArray = currentLineArray.length;
-		currentCharacter = currentLineArray[0];
-
-	}
-
-	private int numOfCharInText(String[] textLines2) 
-	{
-		int count = 0; 
-
-		for(int numOfLines = 0; numOfLines < textLines2.length; numOfLines++)
-		{
-			count += textLines2[numOfLines].length();
-		}
-		
-		return count;
-		
-	}
-
-	/**
-	 * Called to remove any banned Characters in a text document.
-	 * Banned Characters: Enter, Ctrl+Enter
-	 * @param textLines2
-	 */
-	private void cleanUpTextLines(String[] textLines2) 
-	{
-		//for each text line
-		for(int currentLine = 0; currentLine < textLines2.length; currentLine++)
-		{
-			textLines2[currentLine] = textLines2[currentLine].replace("\n", ""); 
-			textLines2[currentLine] = textLines2[currentLine].replaceFirst(" ", ""); 
-		}
-
-	}
-
-	/**
-	 * Credits to Aske B. on StackOverFlow for this solution
-	 * @param s
-	 * @param interval
-	 * @return
-	 */
-	public String[] splitStringEvery(String s, int interval) {
-		int arrayLength = (int) Math.ceil(((s.length() / (double)interval)));
-		String[] result = new String[arrayLength];
-
-		int j = 0;
-		int lastIndex = result.length - 1;
-		for (int i = 0; i < lastIndex; i++) {
-			result[i] = s.substring(j, j + interval);
-			j += interval;
-		} //Add the last bit
-		result[lastIndex] = s.substring(j);
-
-		return result;
-	}
 
 	@Override
 	public void render(float delta) 
@@ -280,43 +151,42 @@ public class GameScreen implements Screen, InputProcessor
 		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
 
 		//UPDATE LOGIC
-		percentageComplete = (float)Math.round((numOfCharactersTypedCorrectly/numOfCharactersInText) * 10000) / 100;
+		term.percentageComplete = (float)Math.round((term.numOfCharactersTypedCorrectly/term.numOfCharactersInText) * 10000) / 100;
 
 		//INPUT LOGIC
 
 
 		batch.begin();
 
-		
+
 		batch.draw(buildingRegionStart, buildingRegionStartX, buildingRegionStartY);
 		batch.draw(buildingRegionEnd, buildingRegionEndX, buildingRegionEndY);
-		
+
 		batch.draw(ropeRegion, 300, 525, 866, 25);
-		
-		heroAnimatedSprite.setX(heroX);
-		heroAnimatedSprite.setY(heroY);
-		heroAnimatedSprite.draw(batch);
+
+		hero.heroAnimatedSprite.setX(hero.heroX);
+		hero.heroAnimatedSprite.setY(hero.heroY);
+		hero.heroAnimatedSprite.draw(batch);
+
+		agentAnimatedSprite.draw(batch);
+
+		vgr.font.setScale(1f);
 
 		vgr.font.setColor(Color.rgba8888(0.9f, ran.nextFloat(), 0.9f, 1));
-		vgr.font.draw(batch, String.valueOf(currentCharacter), vgr.VIRTUAL_WIDTH/4, 680);
-		vgr.font.draw(batch, currentLine, vgr.VIRTUAL_WIDTH/4, 720);
-		vgr.font.draw(batch, "Total: " + numOfCharactersTypedTotal + " \n Correct: " 
-				+ numOfCharactersTypedCorrectly + " \n Incorrect: " 
-				+ numOfCharactersTypedIncorrectly + " Percentage Complete: " + percentageComplete + "%"
-				+ "Distance: " + pixelsHeroNeedsToTravel
-				+ " Pixels Per Move" + pixelsPerMove 
-				, vgr.VIRTUAL_WIDTH/4, 700);
+		//vgr.font.draw(batch, String.valueOf(term.currentCharacter), vgr.VIRTUAL_WIDTH/4, 680);
+		vgr.font.setScale(2.0f);
+		vgr.font.draw(batch, "anon$: " + term.currentLine, vgr.VIRTUAL_WIDTH/4, 740);
 		
-		vgr.font.draw(batch, "MouseX: " + Gdx.input.getX() + " MouseY: " + Gdx.input.getY() + 
-				" heroY: " + heroY,
-				vgr.VIRTUAL_WIDTH/4, 740);
+		vgr.font.setScale(2.0f);
+		vgr.font.draw(batch, term.percentageComplete + "%", 50, 700);
+		vgr.font.setScale(1.0f);
 		
-		
-		for(int i = 0; i <= textLinesSize; i++)
+		vgr.font.setScale(0.6f);
+		for(int i = term.currentLinePointer; i <= term.textLinesSize; i++)
 		{
-			vgr.font.draw(batch, "Line " + i + ": " + textLines[i], vgr.VIRTUAL_WIDTH/4, 600 - (i * 20));
+			vgr.font.drawWrapped(batch, term.textLines[i], 10, 650 - (i * 10), 300);
 		}
-
+		vgr.font.setScale(1.0f);
 		batch.end();
 
 
@@ -329,14 +199,16 @@ public class GameScreen implements Screen, InputProcessor
 	}
 
 	@Override
-	public void show() {
-		// TODO Auto-generated method stub
+	public void show() 
+	{
+		gameTheme.play();
 
 	}
 
 	@Override
-	public void hide() {
-		// TODO Auto-generated method stub
+	public void hide() 
+	{
+		gameTheme.stop();
 
 	}
 
@@ -353,8 +225,9 @@ public class GameScreen implements Screen, InputProcessor
 	}
 
 	@Override
-	public void dispose() {
-		// TODO Auto-generated method stub
+	public void dispose() 
+	{
+		gameTheme.dispose();
 
 	}
 
@@ -381,37 +254,37 @@ public class GameScreen implements Screen, InputProcessor
 		//If it's a valid keycode
 		if(character != 0)
 		{
-			this.currentTypedCharacter = character;
+			term.currentTypedCharacter = character;
 
 			//If player typed the correct letter
-			if(currentTypedCharacter == currentCharacter)
+			if(term.currentTypedCharacter == term.currentCharacter)
 			{
-				goodType.play();
+				goodType.play(0.3f);
 				moveHero();
-				numOfCharactersTypedCorrectly++;
-				numOfCharactersTypedTotal++;
+				term.numOfCharactersTypedCorrectly++;
+				term.numOfCharactersTypedTotal++;
 
 				//if there are still some characters to type on the line
-				if(currentCharacterPointer + 1 < sizeOfCurrentLineArray)
+				if(term.currentCharacterPointer + 1 < term.sizeOfCurrentLineArray)
 				{
-					currentCharacterPointer++;
-					currentCharacter = currentLineArray[currentCharacterPointer];
+					term.currentCharacterPointer++;
+					term.currentCharacter = term.currentLineArray[term.currentCharacterPointer];
 				}
 				//else if we've reached the end of the line
 				else
 				{
-					currentCharacterPointer = 0;
-					processNextLine();
-					currentCharacter = currentLineArray[currentCharacterPointer];
+					term.currentCharacterPointer = 0;
+					term.processNextLine();
+					term.currentCharacter = term.currentLineArray[term.currentCharacterPointer];
 				}
 			}
 
 			//If player typed the incorrect letter
 			else
 			{
-				badType.play();
-				numOfCharactersTypedIncorrectly++;
-				numOfCharactersTypedTotal++;
+				badType.play(0.3f);
+				term.numOfCharactersTypedIncorrectly++;
+				term.numOfCharactersTypedTotal++;
 			}
 		}
 
@@ -423,32 +296,10 @@ public class GameScreen implements Screen, InputProcessor
 
 	private void moveHero() 
 	{
-		heroX += pixelsPerMove;
+		hero.heroX += term.pixelsPerMove;
 	}
 
-	private void processNextLine() 
-	{
-		//If there are still lines in the text document
-		if(currentLinePointer + 1 <= textLinesSize)
-		{
-			currentLinePointer++;
 
-			System.out.println(currentLinePointer);
-			System.out.println(textLines.toString());
-			System.out.println(textLines.length);
-
-			currentLine = textLines[currentLinePointer];
-			currentLineArray = currentLine.toCharArray();
-			sizeOfCurrentLineArray = currentLineArray.length;
-		}
-
-		//if we've reached the end of the document, ie Level Complete
-		else
-		{
-			currentLine = "ACCESS GRANTED";
-		}
-
-	}
 
 	@Override
 	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
