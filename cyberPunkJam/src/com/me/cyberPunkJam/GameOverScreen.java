@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Vector2;
 
 public class GameOverScreen implements Screen 
 {
@@ -17,16 +18,23 @@ public class GameOverScreen implements Screen
 	private OrthographicCamera camera;
 	private BitmapFont font;
 	private Random ran = new Random();
+	private Vector2 mousePos;
+	
+	Button continueButton;
+	Button quitButton;
 	
 	public GameOverScreen(final VertigoRaiderGame vrg) 
 	{
 		this.vrg = vrg;
 		this.batch = vrg.batch;
 		this.font = vrg.font;
+		this.mousePos = new Vector2();
 		
 		this.camera = new OrthographicCamera();
 		font.setScale(5f);
 		
+		continueButton = new Button(vrg.atlas.findRegion("continue"), 300, 300);
+		quitButton = new Button(vrg.atlas.findRegion("quit"), 600, 300);
 		
 	}
 
@@ -36,6 +44,21 @@ public class GameOverScreen implements Screen
 	
 		camera.update();
 		camera.apply(Gdx.gl10);
+		
+		//update
+		mousePos.set(Gdx.input.getX(), Gdx.input.getY());
+		
+		if(continueButton.isClicked(mousePos, Gdx.input.isButtonPressed(0)))
+		{
+			vrg.gameScreen.resetLevel();
+			vrg.setScreen(vrg.gameScreen);
+		}
+		
+		if(quitButton.isClicked(mousePos, Gdx.input.isButtonPressed(0)))
+		{
+			vrg.gameScreen.resetLevel();
+			vrg.setScreen(vrg.mainMenuScreen);
+		}
 
 		//set view port
 		Gdx.gl.glViewport((int) vrg.viewport.x, (int) vrg.viewport.y, 
@@ -48,6 +71,12 @@ public class GameOverScreen implements Screen
 		font.setScale(5f);
 		font.setColor(Color.rgba8888(0.9f, ran.nextFloat(), 0.9f, 1));
 		font.draw(batch, "GAME OVER", vrg.VIRTUAL_WIDTH/4, 600);
+		
+	
+		
+		batch.draw(continueButton.texture, continueButton.buttonX, continueButton.buttonY);
+		batch.draw(quitButton.texture, quitButton.buttonX, quitButton.buttonY);
+		
 		batch.end();
 		
 	}

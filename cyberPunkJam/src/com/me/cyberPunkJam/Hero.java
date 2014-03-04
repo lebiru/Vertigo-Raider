@@ -1,5 +1,7 @@
 package com.me.cyberPunkJam;
 
+import java.awt.Point;
+
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -22,6 +24,13 @@ public class Hero
 		heroAnimatedSprite = new AnimatedSprite(heroAnimation);
 		heroX = startX;
 		heroY = startY;
+		
+	}
+
+	public void reset(Point startCorner) 
+	{
+		heroX = startCorner.x;
+		heroY = startCorner.y;
 		
 	}
 

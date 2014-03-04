@@ -175,13 +175,16 @@ public class Terminal
 			//url = new URL("https://gist.githubusercontent.com/zen6/9300956/raw/e512a79ab7a63dd284155c9ed0b79d9e5e3b7183/Melissa");
 
 			//iloveyou
-			url = new URL("https://gist.githubusercontent.com/zen6/9301336/raw/9e6aeb022a4080d6b6a9039560addd37e4adf42c/test");
+			//url = new URL("https://gist.githubusercontent.com/zen6/9301336/raw/9e6aeb022a4080d6b6a9039560addd37e4adf42c/test");
 
-
+			//tutorial
+			url = new URL("https://gist.githubusercontent.com/zen6/9339775/raw/35a33634f3e4c2cc6fce957137a0e77e247aac8b/tutorial");
+			
 			// read text returned by server
 			BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
 
 			String line;
+			
 			while ((line = in.readLine()) != null) 
 			{
 				holder += line + "\n"; //adding a newline character for readability
@@ -201,5 +204,21 @@ public class Terminal
 			return "ERROR";
 		}
 
+	}
+
+	public void reset() 
+	{
+		
+	}
+
+	public void nextLevel(Point startCorner, Point endCorner) 
+	{
+		//first get the text via Online
+		textFromURL = ReadTextFromURL();
+		//then process Text
+		processText(textFromURL);
+		//calculate distance hero needs to cross
+		calculateHeroTravel(startCorner, endCorner);
+		
 	}
 }

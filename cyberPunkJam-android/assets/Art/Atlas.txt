@@ -2,9 +2,16 @@ Atlas.png
 format: RGBA8888
 filter: Linear,Linear
 repeat: none
+next
+  rotate: false
+  xy: 500, 1100
+  size: 200, 100
+  orig: 200, 100
+  offset: 0, 0
+  index: -1
 building
   rotate: false
-  xy: 0, 150
+  xy: 300, 0
   size: 400, 950
   orig: 400, 950
   offset: 0, 0
@@ -18,29 +25,57 @@ agent
   index: -1
 signs
   rotate: false
-  xy: 25, 1400
+  xy: 225, 1250
   size: 400, 500
   orig: 400, 500
   offset: 0, 0
   index: -1
-hero
+play
   rotate: false
-  xy: 0, 1250
-  size: 500, 150
-  orig: 500, 150
+  xy: 700, 1100
+  size: 200, 100
+  orig: 200, 100
   offset: 0, 0
   index: -1
-citizen
+quit
+  rotate: false
+  xy: 0, 1250
+  size: 200, 100
+  orig: 200, 100
+  offset: 0, 0
+  index: -1
+hero
   rotate: false
   xy: 0, 1100
   size: 500, 150
   orig: 500, 150
   offset: 0, 0
   index: -1
+citizen
+  rotate: false
+  xy: 0, 950
+  size: 500, 150
+  orig: 500, 150
+  offset: 0, 0
+  index: -1
+continue
+  rotate: false
+  xy: 500, 950
+  size: 200, 100
+  orig: 200, 100
+  offset: 0, 0
+  index: -1
 rope
   rotate: false
-  xy: 0, 1400
+  xy: 200, 1250
   size: 25, 25
   orig: 25, 25
+  offset: 0, 0
+  index: -1
+credits
+  rotate: false
+  xy: 700, 950
+  size: 200, 100
+  orig: 200, 100
   offset: 0, 0
   index: -1

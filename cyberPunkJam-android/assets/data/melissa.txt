@@ -1,3 +1,0 @@
-This is the first line of the text.
-This is the second line of the text w/ newline.
-This is the 3 line of the text.

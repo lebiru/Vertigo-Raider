@@ -25,13 +25,14 @@ public class GameScreen implements Screen, InputProcessor
 	private OrthographicCamera camera;
 	private VertigoRaiderGame vgr;
 	private Terminal term;
+	private AgentAI aai;
 
 	private Sound badType;
 	private Sound goodType;
 
 	private Music gameTheme;
 
-	TextureAtlas atlas;
+	//TextureAtlas atlas;
 	TextureRegion buildingRegionStart;
 	float buildingRegionStartX = 0;
 	float buildingRegionStartY = 0;
@@ -49,7 +50,7 @@ public class GameScreen implements Screen, InputProcessor
 	
 	public void spawnCitizen()
 	{
-		citizens.add(new Citizen(atlas));
+		citizens.add(new Citizen(vgr.atlas));
 		lastCitizenTime = TimeUtils.nanoTime();
 	}
 
@@ -85,12 +86,12 @@ public class GameScreen implements Screen, InputProcessor
 		gameTheme.setLooping(true);
 
 		//LOADING IMAGES
-		atlas = new TextureAtlas("Art/Atlas.txt");
+		//atlas = new TextureAtlas("Art/Atlas.txt");
 
 
 		//buildings
-		buildingRegionStart = atlas.findRegion("building");
-		buildingRegionEnd = atlas.findRegion("building");
+		buildingRegionStart = vgr.atlas.findRegion("building");
+		buildingRegionEnd = vgr.atlas.findRegion("building");
 
 		//setting building locations
 		buildingRegionStartX = -100;
@@ -110,12 +111,15 @@ public class GameScreen implements Screen, InputProcessor
 
 		//Loading Terminal
 		term = new Terminal();
+		
+		//Loading Agent AI
+		aai = new AgentAI();
 
-		hero = new Hero(atlas, startCorner.x, startCorner.y);
+		hero = new Hero(vgr.atlas, startCorner.x, startCorner.y);
 
 
 		//agent
-		agentRegion = atlas.findRegion("agent");
+		agentRegion = vgr.atlas.findRegion("agent");
 		TextureRegion[][] agentTR = agentRegion.split(100, 150);
 		agentAnimation = new Animation(5.0f, agentTR[0]);
 		agentAnimation.setPlayMode(Animation.LOOP_PINGPONG);
@@ -125,7 +129,7 @@ public class GameScreen implements Screen, InputProcessor
 
 
 		//rope
-		ropeRegion = atlas.findRegion("rope");
+		ropeRegion = vgr.atlas.findRegion("rope");
 
 
 		//first get the text via Online
@@ -158,7 +162,11 @@ public class GameScreen implements Screen, InputProcessor
 
 		//UPDATE LOGIC
 		term.percentageComplete = (float)Math.round((term.numOfCharactersTypedCorrectly/term.numOfCharactersInText) * 10000) / 100;
-
+		aai.update();
+		
+		checkWinCondition();
+		checkGameOverCondition();
+		
 		//INPUT LOGIC
 
 
@@ -192,7 +200,17 @@ public class GameScreen implements Screen, InputProcessor
 		vgr.font.draw(batch, "anon$: " + term.currentLine, vgr.VIRTUAL_WIDTH/4, 740);
 		
 		vgr.font.setScale(2.0f);
+		
+		//Percentage complete in the game
 		vgr.font.draw(batch, term.percentageComplete + "%", 50, 700);
+		
+		//Percentage close to losing to the Agent AI
+		vgr.font.setColor(Color.RED);
+		vgr.font.draw(batch, aai.percentage + "%", 50, 740);
+		
+		//reset color
+		vgr.font.setColor(Color.rgba8888(0.9f, ran.nextFloat(), 0.9f, 1));;
+		
 		vgr.font.setScale(1.0f);
 		
 		vgr.font.setScale(0.6f);
@@ -205,6 +223,25 @@ public class GameScreen implements Screen, InputProcessor
 
 
 	}
+
+	private void checkGameOverCondition() 
+	{
+		if(aai.percentage >= 100)
+		{
+			vgr.setScreen(vgr.gameOverScreen);
+			this.hide();
+		}
+	}
+	
+	private void checkWinCondition()
+	{
+		if(term.percentageComplete >= 100)
+		{
+			vgr.setScreen(vgr.transitionScreen);
+			this.hide();
+		}
+	}
+
 
 	@Override
 	public void resize(int width, int height) 
@@ -227,14 +264,16 @@ public class GameScreen implements Screen, InputProcessor
 	}
 
 	@Override
-	public void pause() {
-		// TODO Auto-generated method stub
+	public void pause() 
+	{
+		
 
 	}
 
 	@Override
-	public void resume() {
-		// TODO Auto-generated method stub
+	public void resume() 
+	{
+		gameTheme.play();
 
 	}
 
@@ -242,6 +281,11 @@ public class GameScreen implements Screen, InputProcessor
 	public void dispose() 
 	{
 		gameTheme.dispose();
+		
+		//disposing sound
+		goodType.dispose();
+		badType.dispose();
+		
 
 	}
 
@@ -297,6 +341,7 @@ public class GameScreen implements Screen, InputProcessor
 			else
 			{
 				badType.play(0.3f);
+				aai.wrongKeyImpulse(3f);
 				term.numOfCharactersTypedIncorrectly++;
 				term.numOfCharactersTypedTotal++;
 			}
@@ -340,6 +385,22 @@ public class GameScreen implements Screen, InputProcessor
 	public boolean scrolled(int amount) {
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+
+	public void resetLevel() 
+	{
+		aai.reset();
+		term.reset();
+		hero.reset(startCorner);
+		
+	}
+	
+	public void nextLevel()
+	{
+		aai.reset();
+		term.nextLevel(startCorner, endCorner);
+		hero.reset(startCorner);
 	}
 
 }
