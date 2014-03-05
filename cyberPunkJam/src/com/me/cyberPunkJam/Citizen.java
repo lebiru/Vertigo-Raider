@@ -35,7 +35,7 @@ public class Citizen
 
 	public void checkOffScreen(int virtualWidth, int virtualHeight) 
 	{
-		if(citizenX >= virtualWidth + 100)
+		if(citizenX >= virtualWidth + citizenAnimatedSprite.getWidth() + 500)
 		{
 			dx *= -1;
 		}

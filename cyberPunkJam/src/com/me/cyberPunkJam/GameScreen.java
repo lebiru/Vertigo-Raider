@@ -29,6 +29,7 @@ public class GameScreen implements Screen, InputProcessor
 
 	private Sound badType;
 	private Sound goodType;
+	private Sound newLineSound;
 
 	private Music gameTheme;
 
@@ -79,26 +80,23 @@ public class GameScreen implements Screen, InputProcessor
 		//LOADING SOUND
 		goodType = Gdx.audio.newSound(Gdx.files.internal("Sound/FX/type.wav"));
 		badType = Gdx.audio.newSound(Gdx.files.internal("Sound/FX/hit.wav"));
+		newLineSound = Gdx.audio.newSound(Gdx.files.internal("Sound/FX/newline.wav"));
 
 
 		//LOADING MUSIC
 		gameTheme = Gdx.audio.newMusic(Gdx.files.internal("Sound/Music/gameTheme.ogg"));
 		gameTheme.setLooping(true);
 
-		//LOADING IMAGES
-		//atlas = new TextureAtlas("Art/Atlas.txt");
-
-
 		//buildings
 		buildingRegionStart = vgr.atlas.findRegion("building");
 		buildingRegionEnd = vgr.atlas.findRegion("building");
 
 		//setting building locations
-		buildingRegionStartX = -100;
-		buildingRegionStartY = -400;
+		buildingRegionStartX = 0;
+		buildingRegionStartY = 0;
 
-		buildingRegionEndX = vgr.VIRTUAL_WIDTH - 200;
-		buildingRegionEndY = -400;
+		buildingRegionEndX = vgr.VIRTUAL_WIDTH - buildingRegionEnd.getRegionWidth();
+		buildingRegionEndY = 0;
 
 		/**
 		 * Corner points are the starting and ending points for the hero. 
@@ -106,8 +104,10 @@ public class GameScreen implements Screen, InputProcessor
 		 * End Point: Where the hero needs to cross to win.
 		 */
 		//Setting up corner points
-		startCorner.setLocation(308, vgr.VIRTUAL_HEIGHT - 235);
-		endCorner.setLocation(1154, vgr.VIRTUAL_HEIGHT - 235);
+		startCorner.setLocation(buildingRegionStart.getRegionX() + buildingRegionStart.getRegionWidth(), 
+				(vgr.VIRTUAL_HEIGHT - (vgr.VIRTUAL_HEIGHT - buildingRegionStart.getRegionHeight())));
+		endCorner.setLocation(buildingRegionEndX, 
+				(vgr.VIRTUAL_HEIGHT - (vgr.VIRTUAL_HEIGHT - buildingRegionEnd.getRegionHeight())));
 
 		//Loading Terminal
 		term = new Terminal();
@@ -130,8 +130,6 @@ public class GameScreen implements Screen, InputProcessor
 
 		//rope
 		ropeRegion = vgr.atlas.findRegion("rope");
-
-
 		//first get the text via Online
 		term.textFromURL = term.ReadTextFromURL();
 		//then process Text
@@ -139,6 +137,7 @@ public class GameScreen implements Screen, InputProcessor
 		//calculate distance hero needs to cross
 		term.calculateHeroTravel(startCorner, endCorner);
 
+		System.out.println("start: " + startCorner.x + " " + startCorner.y + "  end" + endCorner.x + " " + endCorner.y );
 		citizens = new Array<Citizen>();
 		spawnCitizen();
 
@@ -162,6 +161,7 @@ public class GameScreen implements Screen, InputProcessor
 
 		//UPDATE LOGIC
 		term.percentageComplete = (float)Math.round((term.numOfCharactersTypedCorrectly/term.numOfCharactersInText) * 10000) / 100;
+		term.updateTimer();
 		aai.update();
 		
 		checkWinCondition();
@@ -173,13 +173,15 @@ public class GameScreen implements Screen, InputProcessor
 		batch.begin();
 
 
+		batch.draw(ropeRegion, startCorner.x, startCorner.y  - 25, endCorner.x - startCorner.x, 25);
+		
 		batch.draw(buildingRegionStart, buildingRegionStartX, buildingRegionStartY);
 		batch.draw(buildingRegionEnd, buildingRegionEndX, buildingRegionEndY);
 
-		batch.draw(ropeRegion, 300, 525, 866, 25);
 
 		hero.heroAnimatedSprite.setX(hero.heroX);
 		hero.heroAnimatedSprite.setY(hero.heroY);
+		
 		hero.heroAnimatedSprite.draw(batch);
 
 		agentAnimatedSprite.draw(batch);
@@ -195,30 +197,39 @@ public class GameScreen implements Screen, InputProcessor
 		vgr.font.setScale(1f);
 
 		vgr.font.setColor(Color.rgba8888(0.9f, ran.nextFloat(), 0.9f, 1));
-		//vgr.font.draw(batch, String.valueOf(term.currentCharacter), vgr.VIRTUAL_WIDTH/4, 680);
+		
 		vgr.font.setScale(2.0f);
+		
+		//required typing
 		vgr.font.draw(batch, "anon$: " + term.currentLine, vgr.VIRTUAL_WIDTH/4, 740);
+		//completed typing
+		vgr.font.setColor(Color.GREEN);
+		vgr.font.draw(batch, term.completedLine, vgr.VIRTUAL_WIDTH/4 + 96, 740);
+		vgr.font.setColor(Color.rgba8888(0.9f, ran.nextFloat(), 0.9f, 1));
 		
 		vgr.font.setScale(2.0f);
 		
 		//Percentage complete in the game
-		vgr.font.draw(batch, term.percentageComplete + "%", 50, 700);
+		vgr.font.draw(batch, "PROGRESS " + term.percentageComplete + "%", 50, 700);
 		
 		//Percentage close to losing to the Agent AI
 		vgr.font.setColor(Color.RED);
-		vgr.font.draw(batch, aai.percentage + "%", 50, 740);
+		vgr.font.draw(batch, "ALERT " + aai.percentage + "%", 50, 740);
+		
+		//timer
+		vgr.font.draw(batch, "TIMER: " + String.valueOf(term.timeLimit - term.timer), 50, 660);
 		
 		//reset color
 		vgr.font.setColor(Color.rgba8888(0.9f, ran.nextFloat(), 0.9f, 1));;
 		
 		vgr.font.setScale(1.0f);
 		
-		vgr.font.setScale(0.6f);
-		for(int i = term.currentLinePointer; i <= term.textLinesSize; i++)
-		{
-			vgr.font.drawWrapped(batch, term.textLines[i], 10, 650 - (i * 10), 300);
-		}
-		vgr.font.setScale(1.0f);
+//		vgr.font.setScale(0.6f);
+//		for(int i = term.currentLinePointer; i <= term.textLinesSize; i++)
+//		{
+//			vgr.font.drawWrapped(batch, term.textLines[i], 10, 650 - (i * 10), 300);
+//		}
+//		vgr.font.setScale(1.0f);
 		batch.end();
 
 
@@ -231,6 +242,13 @@ public class GameScreen implements Screen, InputProcessor
 			vgr.setScreen(vgr.gameOverScreen);
 			this.hide();
 		}
+		
+		else if(term.timeLimit < 0)
+		{
+			vgr.setScreen(vgr.gameOverScreen);
+			this.hide();
+		}
+		
 	}
 	
 	private void checkWinCondition()
@@ -253,6 +271,7 @@ public class GameScreen implements Screen, InputProcessor
 	public void show() 
 	{
 		gameTheme.play();
+		term.startTimer = System.nanoTime();
 
 	}
 
@@ -319,6 +338,7 @@ public class GameScreen implements Screen, InputProcessor
 			{
 				goodType.play(0.3f);
 				moveHero();
+				term.completedLine += character;
 				term.numOfCharactersTypedCorrectly++;
 				term.numOfCharactersTypedTotal++;
 
@@ -331,6 +351,7 @@ public class GameScreen implements Screen, InputProcessor
 				//else if we've reached the end of the line
 				else
 				{
+					newLineSound.play();
 					term.currentCharacterPointer = 0;
 					term.processNextLine();
 					term.currentCharacter = term.currentLineArray[term.currentCharacterPointer];
@@ -391,7 +412,7 @@ public class GameScreen implements Screen, InputProcessor
 	public void resetLevel() 
 	{
 		aai.reset();
-		term.reset();
+		term.reset(startCorner, endCorner);
 		hero.reset(startCorner);
 		
 	}

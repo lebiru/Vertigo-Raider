@@ -32,7 +32,7 @@ public class TransitionScreen implements Screen
 		this.camera = new OrthographicCamera();
 		font.setScale(5f);
 		
-		nextMissionButton = new Button(vrg.atlas.findRegion("next"), 100, 300);
+		nextMissionButton = new Button(vrg.atlas.findRegion("next"), vrg.VIRTUAL_WIDTH/2, 300);
 		
 	}
 
@@ -47,7 +47,7 @@ public class TransitionScreen implements Screen
 		mousePos.set(Gdx.input.getX(), Gdx.input.getY());
 		if(nextMissionButton.isClicked(mousePos, Gdx.input.isButtonPressed(0)))
 		{
-			vrg.gameScreen.resetLevel();
+			vrg.gameScreen.nextLevel();
 			vrg.setScreen(vrg.gameScreen);
 		}
 

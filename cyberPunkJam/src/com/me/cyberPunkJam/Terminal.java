@@ -6,11 +6,17 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 
 public class Terminal 
 {
 	//Terminal Logic Variables///////////////////////
 
+	
+	double timer = 0;
+	long startTimer = 0;
+	double timeLimit = 0;
+	
 	//For all lines
 	String textFromURL = "";
 	String []textLines = {}; //All the lines from a given text
@@ -19,6 +25,7 @@ public class Terminal
 
 	//For an individual line
 	String currentLine = "";
+	String completedLine = "";
 	char[] currentLineArray = {};
 	int sizeOfCurrentLineArray = 0;
 	int currentCharacterPointer = 0;
@@ -33,12 +40,25 @@ public class Terminal
 
 	float pixelsHeroNeedsToTravel = 200; //this should be the distance between building corners
 	float pixelsPerMove = 0; //every time user types a correct word, player must move this amount of pixels.
+	
+	ArrayList<URL> levels = new ArrayList<URL>();
 
 	////////////////////////////////////////////////////
 
 	public Terminal()
 	{
-
+		try 
+		{
+			levels.add(new URL("https://gist.githubusercontent.com/zen6/9360518/raw/30d74d258442c7c65512eafab474568dd706c430/short"));
+			levels.add(new URL("https://gist.githubusercontent.com/zen6/9339775/raw/35a33634f3e4c2cc6fce957137a0e77e247aac8b/tutorial"));
+			levels.add(new URL("https://gist.githubusercontent.com/zen6/9301336/raw/9e6aeb022a4080d6b6a9039560addd37e4adf42c/test"));
+			levels.add(new URL("https://gist.githubusercontent.com/zen6/9300956/raw/e512a79ab7a63dd284155c9ed0b79d9e5e3b7183/Melissa"));
+			levels.add(new URL("https://gist.githubusercontent.com/zen6/9300973/raw/682f04f8d6a7723887d674e2496cf956e7bffedc/Zeus"));
+			
+		} catch (MalformedURLException e) 
+		{
+			e.printStackTrace();
+		}
 	}
 
 	public void calculateHeroTravel(Point start, Point end)
@@ -80,6 +100,8 @@ public class Terminal
 			count += textLines2[numOfLines].length();
 		}
 
+		timeLimit = count;
+		
 		return count;
 
 	}
@@ -130,6 +152,10 @@ public class Terminal
 	 */
 	public void processNextLine() 
 	{
+		
+		//clear completed line
+		completedLine = "";
+		
 		//If there are still lines in the text document
 		if(currentLinePointer + 1 <= textLinesSize)
 		{
@@ -162,26 +188,11 @@ public class Terminal
 	{
 
 		String holder = "";
-		URL url;
 
 		try {
 
-			//Viruses in PlainText via URL
-
-			//Zeus
-			//url = new URL("https://gist.githubusercontent.com/zen6/9300973/raw/682f04f8d6a7723887d674e2496cf956e7bffedc/Zeus");
-
-			//Melissa
-			//url = new URL("https://gist.githubusercontent.com/zen6/9300956/raw/e512a79ab7a63dd284155c9ed0b79d9e5e3b7183/Melissa");
-
-			//iloveyou
-			//url = new URL("https://gist.githubusercontent.com/zen6/9301336/raw/9e6aeb022a4080d6b6a9039560addd37e4adf42c/test");
-
-			//tutorial
-			url = new URL("https://gist.githubusercontent.com/zen6/9339775/raw/35a33634f3e4c2cc6fce957137a0e77e247aac8b/tutorial");
-			
 			// read text returned by server
-			BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
+			BufferedReader in = new BufferedReader(new InputStreamReader(levels.remove(0).openStream()));
 
 			String line;
 			
@@ -206,13 +217,18 @@ public class Terminal
 
 	}
 
-	public void reset() 
+	public void reset(Point startCorner, Point endCorner) 
 	{
-		
+		percentageComplete = 0;
+		completedLine = "";
+		processText(textFromURL);
+		calculateHeroTravel(startCorner, endCorner);
 	}
 
 	public void nextLevel(Point startCorner, Point endCorner) 
 	{
+		percentageComplete = 0;
+		completedLine = "";
 		//first get the text via Online
 		textFromURL = ReadTextFromURL();
 		//then process Text
@@ -220,5 +236,10 @@ public class Terminal
 		//calculate distance hero needs to cross
 		calculateHeroTravel(startCorner, endCorner);
 		
+	}
+
+	public void updateTimer() 
+	{
+		timer = Math.round((double)(System.nanoTime() - startTimer) / 1000000000);
 	}
 }
