@@ -7,15 +7,20 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Random;
+
+import com.badlogic.gdx.utils.Array;
 
 public class Terminal 
 {
 	//Terminal Logic Variables///////////////////////
 
+	Random ran = new Random();
 	
 	double timer = 0;
 	long startTimer = 0;
 	double timeLimit = 0;
+	double timeLeft = 0;
 	
 	//For all lines
 	String textFromURL = "";
@@ -32,21 +37,46 @@ public class Terminal
 	char currentCharacter;
 	char currentTypedCharacter;
 
+	//statistics
 	float percentageComplete = 0;
 	float numOfCharactersInText = 0;
 	float numOfCharactersTypedCorrectly = 0;
 	float numOfCharactersTypedTotal = 0;
 	float numOfCharactersTypedIncorrectly = 0; 
+	
+	//Sequencers
+	// Up -> 38
+	//Left -> 37
+	// Right -> 39
+	// Down -> 40
+	boolean isSequenceMode = true;
+	String[] possibleSequences = {"cyber", "hax0r", "1D10T", "Zero Cool", "Hiro"};
+	String sequence = possibleSequences[ran.nextInt(possibleSequences.length)];
+	int sizeOfCurrentLineArraySequencer = sequence.length();
+	char currentSequencerCharacter = sequence.charAt(0);
+	String completedLineSequencer = "";
+	int currentCharacterPointerSequencer = 0;
+	char[] currentLineArraySequencer = sequence.toCharArray();
 
 	float pixelsHeroNeedsToTravel = 200; //this should be the distance between building corners
 	float pixelsPerMove = 0; //every time user types a correct word, player must move this amount of pixels.
 	
 	ArrayList<URL> levels = new ArrayList<URL>();
 
+	
+
+	
+
+	
+
+
 	////////////////////////////////////////////////////
 
 	public Terminal()
 	{
+		
+		
+		
 		try 
 		{
 			levels.add(new URL("https://gist.githubusercontent.com/zen6/9360518/raw/30d74d258442c7c65512eafab474568dd706c430/short"));
@@ -241,5 +271,21 @@ public class Terminal
 	public void updateTimer() 
 	{
 		timer = Math.round((double)(System.nanoTime() - startTimer) / 1000000000);
+		timeLeft = timeLimit - timer;
+	}
+	
+	//Generate a QTE Sequence
+	public void generateSequence()
+	{
+		sequence = possibleSequences[ran.nextInt(possibleSequences.length)];
 	}
 }
+
+
+
+
+
+
+
+
+

@@ -14,7 +14,6 @@ import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.TimeUtils;
@@ -43,17 +42,22 @@ public class GameScreen implements Screen, InputProcessor
 	float buildingRegionEndX = 0;
 	float buildingRegionEndY = 0;
 	Point endCorner = new Point();
+	
+	TextureRegion sequencerBackground;
+	float sequencerBackgroundX = 0;
+	float sequencerBackgroundY= 0;
 
 	Hero hero;
 	
+	int numOfSignsLeft = 10;
+	int numOfSignsRight = 10;
+	Array<Sign> signsLeft;
+	Array<Sign> signsRight;
+	
+	int numOfCitizens = 100;
 	Array<Citizen> citizens;
 	long lastCitizenTime;
 	
-	public void spawnCitizen()
-	{
-		citizens.add(new Citizen(vgr.atlas));
-		lastCitizenTime = TimeUtils.nanoTime();
-	}
 
 	TextureRegion agentRegion;
 	Animation agentAnimation;
@@ -64,8 +68,7 @@ public class GameScreen implements Screen, InputProcessor
 	TextureRegion ropeRegion;
 
 	Random ran = new Random();
-
-
+	
 	public GameScreen(final VertigoRaiderGame vgr) 
 	{
 		this.vgr = vgr;
@@ -97,6 +100,11 @@ public class GameScreen implements Screen, InputProcessor
 
 		buildingRegionEndX = vgr.VIRTUAL_WIDTH - buildingRegionEnd.getRegionWidth();
 		buildingRegionEndY = 0;
+		
+		//Sequencer background
+		sequencerBackground = vgr.atlas.findRegion("sequencerBackground");
+		sequencerBackgroundX = 200;
+		sequencerBackgroundY = 600;
 
 		/**
 		 * Corner points are the starting and ending points for the hero. 
@@ -104,11 +112,35 @@ public class GameScreen implements Screen, InputProcessor
 		 * End Point: Where the hero needs to cross to win.
 		 */
 		//Setting up corner points
-		startCorner.setLocation(buildingRegionStart.getRegionX() + buildingRegionStart.getRegionWidth(), 
+		startCorner.setLocation(buildingRegionStartX + buildingRegionStart.getRegionWidth(), 
 				(vgr.VIRTUAL_HEIGHT - (vgr.VIRTUAL_HEIGHT - buildingRegionStart.getRegionHeight())));
 		endCorner.setLocation(buildingRegionEndX, 
 				(vgr.VIRTUAL_HEIGHT - (vgr.VIRTUAL_HEIGHT - buildingRegionEnd.getRegionHeight())));
+		
+		//signs
+		signsLeft = new Array<Sign>();
+		for(int i = 0; i < numOfSignsLeft; i++)
+		{
+			signsLeft.add(new Sign(vgr.atlas, betweenTwo(startCorner.x - 200, startCorner.x), //200 = sign width
+					betweenTwo(0, startCorner.y - 100)));
+		}
 
+		signsRight = new Array<Sign>();
+		for(int i = 0; i < numOfSignsRight; i++)
+		{
+			signsRight.add(new Sign(vgr.atlas, betweenTwo(endCorner.x - 200, endCorner.x), //200 = sign width
+					betweenTwo(0, endCorner.y - 100)));
+		}
+		
+		//citizens
+		citizens = new Array<Citizen>();
+		for(int i = 0; i < numOfCitizens; i++)
+		{
+			spawnCitizen();
+		}
+		
+		
+		
 		//Loading Terminal
 		term = new Terminal();
 		
@@ -137,11 +169,6 @@ public class GameScreen implements Screen, InputProcessor
 		//calculate distance hero needs to cross
 		term.calculateHeroTravel(startCorner, endCorner);
 
-		System.out.println("start: " + startCorner.x + " " + startCorner.y + "  end" + endCorner.x + " " + endCorner.y );
-		citizens = new Array<Citizen>();
-		spawnCitizen();
-
-
 	}
 
 
@@ -167,20 +194,42 @@ public class GameScreen implements Screen, InputProcessor
 		checkWinCondition();
 		checkGameOverCondition();
 		
+		//UPDATE LOCATIONS
+		hero.heroAnimatedSprite.setX(hero.heroX);
+		hero.heroAnimatedSprite.setY(hero.heroY);
+		
+		for(Sign s : signsLeft)
+		{
+			s.signAnimatedSprite.setPosition(s.x, s.y);
+		}
+		for(Sign s : signsRight)
+		{
+			s.signAnimatedSprite.setPosition(s.x, s.y);
+		}
+		
 		//INPUT LOGIC
 
 
 		batch.begin();
 
-
+		//draw rope
 		batch.draw(ropeRegion, startCorner.x, startCorner.y  - 25, endCorner.x - startCorner.x, 25);
 		
+		//draw buildings
 		batch.draw(buildingRegionStart, buildingRegionStartX, buildingRegionStartY);
 		batch.draw(buildingRegionEnd, buildingRegionEndX, buildingRegionEndY);
+		
+		//draw signs
+		for(Sign s : signsLeft)
+		{
+			s.signAnimatedSprite.draw(batch);
+		}
+		for(Sign s : signsRight)
+		{
+			s.signAnimatedSprite.draw(batch);
+		}
 
 
-		hero.heroAnimatedSprite.setX(hero.heroX);
-		hero.heroAnimatedSprite.setY(hero.heroY);
 		
 		hero.heroAnimatedSprite.draw(batch);
 
@@ -217,7 +266,32 @@ public class GameScreen implements Screen, InputProcessor
 		vgr.font.draw(batch, "ALERT " + aai.percentage + "%", 50, 740);
 		
 		//timer
-		vgr.font.draw(batch, "TIMER: " + String.valueOf(term.timeLimit - term.timer), 50, 660);
+		vgr.font.draw(batch, "TIMER: " + String.valueOf(term.timeLeft), 50, 660);
+		
+		//sequencer
+		if(term.isSequenceMode == true)
+		{
+			batch.draw(sequencerBackground, 300, 200);
+			
+			vgr.font.setScale(4.0f);
+			vgr.font.setColor(Color.rgba8888(0.9f, 0.9f,  ran.nextFloat(), 1));
+			vgr.font.draw(batch, "SEQUENCER", vgr.VIRTUAL_WIDTH/2 - 200, 600);
+			
+			vgr.font.setScale(6.0f);
+			//required typing
+			vgr.font.draw(batch, term.sequence, vgr.VIRTUAL_WIDTH/2 - 100, 400);
+			//completed typing
+			vgr.font.setColor(Color.GREEN);
+			vgr.font.draw(batch, term.completedLineSequencer, vgr.VIRTUAL_WIDTH/2 - 100, 400);
+			vgr.font.setColor(Color.rgba8888(0.9f, ran.nextFloat(), 0.9f, 1));
+			
+			vgr.font.setScale(2.0f);
+		}
+		
+		//agent speak
+		//TODO Implement agent speaking logic
+		vgr.font.draw(batch, "Where could he be?", agentX + agentAnimatedSprite.getWidth(), agentY + agentAnimatedSprite.getHeight());
+		
 		
 		//reset color
 		vgr.font.setColor(Color.rgba8888(0.9f, ran.nextFloat(), 0.9f, 1));;
@@ -243,11 +317,11 @@ public class GameScreen implements Screen, InputProcessor
 			this.hide();
 		}
 		
-		else if(term.timeLimit < 0)
-		{
-			vgr.setScreen(vgr.gameOverScreen);
-			this.hide();
-		}
+//		else if(term.timeLeft < 0)
+//		{
+//			vgr.setScreen(vgr.gameOverScreen);
+//			this.hide();
+//		}
 		
 	}
 	
@@ -325,47 +399,82 @@ public class GameScreen implements Screen, InputProcessor
 	{
 		System.out.println("Char: " + character + " Keycode: " + KeyEvent.getExtendedKeyCodeForChar(character));
 
-		//TODO a check here to avoid shift key, control key
-		int keyCode = KeyEvent.getExtendedKeyCodeForChar(character);
-
 		//If it's a valid keycode
 		if(character != 0)
 		{
 			term.currentTypedCharacter = character;
-
-			//If player typed the correct letter
-			if(term.currentTypedCharacter == term.currentCharacter)
+			System.out.println("enter");
+			//If we are not in Sequencer Mode
+			if(term.isSequenceMode == false)
 			{
-				goodType.play(0.3f);
-				moveHero();
-				term.completedLine += character;
-				term.numOfCharactersTypedCorrectly++;
-				term.numOfCharactersTypedTotal++;
-
-				//if there are still some characters to type on the line
-				if(term.currentCharacterPointer + 1 < term.sizeOfCurrentLineArray)
+				//If player typed the correct letter
+				if(term.currentTypedCharacter == term.currentCharacter)
 				{
-					term.currentCharacterPointer++;
-					term.currentCharacter = term.currentLineArray[term.currentCharacterPointer];
+					goodType.play(0.3f);
+					moveHero();
+					term.completedLine += character;
+					term.numOfCharactersTypedCorrectly++;
+					term.numOfCharactersTypedTotal++;
+
+					//if there are still some characters to type on the line
+					if(term.currentCharacterPointer + 1 < term.sizeOfCurrentLineArray)
+					{
+						term.currentCharacterPointer++;
+						term.currentCharacter = term.currentLineArray[term.currentCharacterPointer];
+					}
+					//else if we've reached the end of the line
+					else
+					{
+						newLineSound.play();
+						term.currentCharacterPointer = 0;
+						term.processNextLine();
+						term.currentCharacter = term.currentLineArray[term.currentCharacterPointer];
+					}
 				}
-				//else if we've reached the end of the line
+
+				//If player typed the incorrect letter
 				else
 				{
-					newLineSound.play();
-					term.currentCharacterPointer = 0;
-					term.processNextLine();
-					term.currentCharacter = term.currentLineArray[term.currentCharacterPointer];
+					badType.play(0.3f);
+					aai.wrongKeyImpulse(3f);
+					term.numOfCharactersTypedIncorrectly++;
+					term.numOfCharactersTypedTotal++;
 				}
 			}
-
-			//If player typed the incorrect letter
+			
+			//If we are in Sequencer Mode
 			else
 			{
-				badType.play(0.3f);
-				aai.wrongKeyImpulse(3f);
-				term.numOfCharactersTypedIncorrectly++;
-				term.numOfCharactersTypedTotal++;
+				if(term.currentTypedCharacter == term.currentSequencerCharacter)
+				{
+					goodType.play();
+					term.completedLineSequencer += character;
+					
+					//if there are still some sequencer characters to type on the line
+					if(term.currentCharacterPointerSequencer + 1 < term.sizeOfCurrentLineArraySequencer)
+					{
+						term.currentCharacterPointerSequencer++;
+						term.currentSequencerCharacter = term.currentLineArraySequencer[term.currentCharacterPointerSequencer];
+					}
+					
+					//else if we've reached the end of the sequencer
+					else
+					{
+						newLineSound.play();
+						term.isSequenceMode = false;
+					}
+					
+				}
+				
+				//if the player typed the incorrect sequencer input
+				else
+				{
+					badType.play(0.3f);
+					aai.wrongKeyImpulse(3f);
+				}
 			}
+			
+			
 		}
 
 		return false;
@@ -422,6 +531,18 @@ public class GameScreen implements Screen, InputProcessor
 		aai.reset();
 		term.nextLevel(startCorner, endCorner);
 		hero.reset(startCorner);
+	}
+	
+	public float betweenTwo(float min, float max)
+	{
+		float sub = max - min;
+		return ran.nextFloat() * sub + min;
+	}
+
+	public void spawnCitizen()
+	{
+		citizens.add(new Citizen(vgr.atlas, vgr.VIRTUAL_WIDTH));
+		lastCitizenTime = TimeUtils.nanoTime();
 	}
 
 }
