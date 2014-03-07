@@ -21,13 +21,25 @@ public class Citizen
 	public Citizen(TextureAtlas atlas, float screenWidth)
 	{
 		//citizen
-		citizenRegion = atlas.findRegion("citizen");
+		int citizenSwitch = ran.nextInt(5);
+		switch(citizenSwitch) {
+		case 0: citizenRegion = atlas.findRegion("citizen01_ALPHA");
+			    break;
+		case 1: citizenRegion = atlas.findRegion("citizen02_ALPHA");
+	    		break;
+		case 2: citizenRegion = atlas.findRegion("citizen03_ALPHA");
+	    		break;
+		case 3: citizenRegion = atlas.findRegion("citizen04_ALPHA");
+	    		break;
+		case 4: citizenRegion = atlas.findRegion("agent_ALPHA");
+		}
 		TextureRegion[][] citizenTR = citizenRegion.split(100, 150);
 		speed = betweenTwo(2f, 5f);
-		citizenAnimation = new Animation(1/speed, citizenTR[0]);
+		citizenAnimation = new Animation(0.15f/speed, citizenTR[0]);
 		citizenAnimation.setPlayMode(Animation.LOOP_PINGPONG);
 		citizenAnimatedSprite = new AnimatedSprite(citizenAnimation);
 		citizenAnimatedSprite.setScale(betweenTwo(1f, 1.5f));
+		citizenAnimatedSprite.setColor(betweenTwo(0.8f, 1f), betweenTwo(0.9f, 1f), betweenTwo(0.9f, 1f), 1);
 		citizenX = betweenTwo(0, screenWidth);
 		citizenY = 0;
 		
@@ -38,6 +50,11 @@ public class Citizen
 		else
 		{
 			dx = -1;
+		}
+		
+		if(dx < 0)
+		{
+			citizenAnimatedSprite.flipFrames(true, false, true);
 		}
 		
 		
@@ -55,6 +72,12 @@ public class Citizen
 		if(citizenX >= virtualWidth + citizenAnimatedSprite.getWidth() + 500)
 		{
 			dx *= -1;
+			if(dx < 0)
+			{
+				citizenAnimatedSprite.flipFrames(true, false, true);
+				
+			}
+			
 		}
 		
 		else if(citizenX <= 0 - citizenAnimatedSprite.getWidth() - 100)

@@ -9,8 +9,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Random;
 
-import com.badlogic.gdx.utils.Array;
-
 public class Terminal 
 {
 	//Terminal Logic Variables///////////////////////
@@ -49,7 +47,11 @@ public class Terminal
 	//Left -> 37
 	// Right -> 39
 	// Down -> 40
-	boolean isSequenceMode = true;
+	long sequencerCountdown = 0;
+	long sequencerCountdownLimit = 0;
+	long sequencerTimer;
+	long lastCompletedSequence = 0;
+	boolean isSequenceMode = false;
 	String[] possibleSequences = {"cyber", "hax0r", "1D10T", "Zero Cool", "Hiro"};
 	String sequence = possibleSequences[ran.nextInt(possibleSequences.length)];
 	int sizeOfCurrentLineArraySequencer = sequence.length();
@@ -66,9 +68,6 @@ public class Terminal
 	
 
 	
-
-	
-
 
 	////////////////////////////////////////////////////
 
@@ -131,6 +130,9 @@ public class Terminal
 		}
 
 		timeLimit = count;
+		sequencerCountdownLimit = (long) betweenTwo(3f, 5f);
+		sequencerCountdown = sequencerCountdownLimit;
+		lastCompletedSequence = System.nanoTime();
 		
 		return count;
 
@@ -271,14 +273,42 @@ public class Terminal
 	public void updateTimer() 
 	{
 		timer = Math.round((double)(System.nanoTime() - startTimer) / 1000000000);
+		sequencerTimer = Math.round((double)(System.nanoTime() - lastCompletedSequence) / 1000000000);
 		timeLeft = timeLimit - timer;
+		
+		if(sequencerCountdown > 0)
+		{
+			sequencerCountdown = (long) ((long) sequencerCountdownLimit - sequencerTimer);
+			isSequenceMode = false;
+		}
+		if(sequencerCountdown <= 0)
+		{
+			isSequenceMode = true;
+		}
 	}
 	
 	//Generate a QTE Sequence
 	public void generateSequence()
 	{
 		sequence = possibleSequences[ran.nextInt(possibleSequences.length)];
+		sequencerCountdownLimit = (long) betweenTwo(3f, 5f);
+		sequencerCountdown = sequencerCountdownLimit;
+		sequencerTimer = Math.round((double)(System.nanoTime() - lastCompletedSequence) / 1000000000);
+		lastCompletedSequence = System.nanoTime();
+		isSequenceMode = false;
+		completedLineSequencer = "";
+		currentCharacterPointerSequencer = 0;
+		currentLineArraySequencer = sequence.toCharArray();
+		currentSequencerCharacter = currentLineArraySequencer[currentCharacterPointerSequencer];
+		sizeOfCurrentLineArraySequencer = sequence.length();
 	}
+	
+	public float betweenTwo(float min, float max)
+	{
+		float sub = max - min;
+		return ran.nextFloat() * sub + min;
+	}
+
 }
 
 

@@ -14,6 +14,7 @@ import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.TimeUtils;
@@ -36,12 +37,16 @@ public class GameScreen implements Screen, InputProcessor
 	TextureRegion buildingRegionStart;
 	float buildingRegionStartX = 0;
 	float buildingRegionStartY = 0;
-	Point startCorner = new Point();
+	Point startCorner;
 
 	TextureRegion buildingRegionEnd;
 	float buildingRegionEndX = 0;
 	float buildingRegionEndY = 0;
-	Point endCorner = new Point();
+	Point endCorner;
+	
+	TextureRegion backgroundRegion;
+	float backgroundRegionX = 0;
+	float backgroundRegionY = 0;
 	
 	TextureRegion sequencerBackground;
 	float sequencerBackgroundX = 0;
@@ -59,15 +64,16 @@ public class GameScreen implements Screen, InputProcessor
 	long lastCitizenTime;
 	
 
-	TextureRegion agentRegion;
-	Animation agentAnimation;
-	AnimatedSprite agentAnimatedSprite;
-	float agentX = 0;
-	float agentY = 0;
+//	TextureRegion agentRegion;
+//	Animation agentAnimation;
+//	AnimatedSprite agentAnimatedSprite;
+//	float agentX = 0;
+//	float agentY = 0;
 
 	TextureRegion ropeRegion;
 
 	Random ran = new Random();
+	
 	
 	public GameScreen(final VertigoRaiderGame vgr) 
 	{
@@ -91,8 +97,11 @@ public class GameScreen implements Screen, InputProcessor
 		gameTheme.setLooping(true);
 
 		//buildings
-		buildingRegionStart = vgr.atlas.findRegion("building");
-		buildingRegionEnd = vgr.atlas.findRegion("building");
+		buildingRegionStart = vgr.atlas.findRegion("building_ALPHA");
+		buildingRegionEnd = vgr.atlas.findRegion("building_ALPHA");
+		
+		//background
+		backgroundRegion = vgr.atlas.findRegion("background_ALPHA");
 
 		//setting building locations
 		buildingRegionStartX = 0;
@@ -112,6 +121,8 @@ public class GameScreen implements Screen, InputProcessor
 		 * End Point: Where the hero needs to cross to win.
 		 */
 		//Setting up corner points
+		startCorner = new Point();
+		endCorner = new Point();
 		startCorner.setLocation(buildingRegionStartX + buildingRegionStart.getRegionWidth(), 
 				(vgr.VIRTUAL_HEIGHT - (vgr.VIRTUAL_HEIGHT - buildingRegionStart.getRegionHeight())));
 		endCorner.setLocation(buildingRegionEndX, 
@@ -139,8 +150,6 @@ public class GameScreen implements Screen, InputProcessor
 			spawnCitizen();
 		}
 		
-		
-		
 		//Loading Terminal
 		term = new Terminal();
 		
@@ -151,17 +160,17 @@ public class GameScreen implements Screen, InputProcessor
 
 
 		//agent
-		agentRegion = vgr.atlas.findRegion("agent");
-		TextureRegion[][] agentTR = agentRegion.split(100, 150);
-		agentAnimation = new Animation(5.0f, agentTR[0]);
-		agentAnimation.setPlayMode(Animation.LOOP_PINGPONG);
-		agentAnimatedSprite = new AnimatedSprite(agentAnimation);
-		agentX = 50;
-		agentY = vgr.VIRTUAL_HEIGHT - agentAnimatedSprite.getHeight();
+//		agentRegion = vgr.atlas.findRegion("agent");
+//		TextureRegion[][] agentTR = agentRegion.split(100, 150);
+//		agentAnimation = new Animation(5.0f, agentTR[0]);
+//		agentAnimation.setPlayMode(Animation.LOOP_PINGPONG);
+//		agentAnimatedSprite = new AnimatedSprite(agentAnimation);
+//		agentX = 50;
+//		agentY = vgr.VIRTUAL_HEIGHT - agentAnimatedSprite.getHeight();
 
 
 		//rope
-		ropeRegion = vgr.atlas.findRegion("rope");
+		ropeRegion = vgr.atlas.findRegion("rope_ALPHA");
 		//first get the text via Online
 		term.textFromURL = term.ReadTextFromURL();
 		//then process Text
@@ -198,6 +207,7 @@ public class GameScreen implements Screen, InputProcessor
 		hero.heroAnimatedSprite.setX(hero.heroX);
 		hero.heroAnimatedSprite.setY(hero.heroY);
 		
+		
 		for(Sign s : signsLeft)
 		{
 			s.signAnimatedSprite.setPosition(s.x, s.y);
@@ -212,6 +222,7 @@ public class GameScreen implements Screen, InputProcessor
 
 		batch.begin();
 
+		batch.draw(backgroundRegion, backgroundRegionX, backgroundRegionY);
 		//draw rope
 		batch.draw(ropeRegion, startCorner.x, startCorner.y  - 25, endCorner.x - startCorner.x, 25);
 		
@@ -233,7 +244,7 @@ public class GameScreen implements Screen, InputProcessor
 		
 		hero.heroAnimatedSprite.draw(batch);
 
-		agentAnimatedSprite.draw(batch);
+		//agentAnimatedSprite.draw(batch);
 		
 		for(Citizen c : citizens)
 		{
@@ -268,6 +279,12 @@ public class GameScreen implements Screen, InputProcessor
 		//timer
 		vgr.font.draw(batch, "TIMER: " + String.valueOf(term.timeLeft), 50, 660);
 		
+		//sequence timer
+		vgr.font.draw(batch, "sequence timer: " + String.valueOf(term.sequencerCountdown), 50, 640);
+		vgr.font.draw(batch, "sequence start timer: " + String.valueOf(term.sequencerCountdownLimit), 50, 620);
+		vgr.font.draw(batch, "timer: " + String.valueOf(term.timer), 50, 600);
+		vgr.font.draw(batch, "mode: " + String.valueOf(term.isSequenceMode), 50, 580);
+		
 		//sequencer
 		if(term.isSequenceMode == true)
 		{
@@ -290,7 +307,7 @@ public class GameScreen implements Screen, InputProcessor
 		
 		//agent speak
 		//TODO Implement agent speaking logic
-		vgr.font.draw(batch, "Where could he be?", agentX + agentAnimatedSprite.getWidth(), agentY + agentAnimatedSprite.getHeight());
+		//vgr.font.draw(batch, "Where could he be?", agentX + agentAnimatedSprite.getWidth(), agentY + agentAnimatedSprite.getHeight());
 		
 		
 		//reset color
@@ -461,7 +478,7 @@ public class GameScreen implements Screen, InputProcessor
 					else
 					{
 						newLineSound.play();
-						term.isSequenceMode = false;
+						term.generateSequence();
 					}
 					
 				}
