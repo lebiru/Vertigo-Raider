@@ -2,13 +2,6 @@ Atlas.png
 format: RGBA8888
 filter: Linear,Linear
 repeat: none
-hero
-  rotate: false
-  xy: 0, 1536
-  size: 500, 150
-  orig: 500, 150
-  offset: 0, 0
-  index: -1
 background_ALPHA
   rotate: false
   xy: 0, 150
@@ -32,7 +25,7 @@ citizen04_ALPHA
   index: 1
 sequencerBackground
   rotate: false
-  xy: 1148, 1536
+  xy: 248, 1686
   size: 700, 500
   orig: 700, 500
   offset: 0, 0
@@ -44,6 +37,13 @@ agent
   orig: 300, 150
   offset: 0, 0
   index: -1
+hero_ALPHA
+  rotate: false
+  xy: 0, 1536
+  size: 1600, 150
+  orig: 1600, 150
+  offset: 0, 0
+  index: 1
 citizen03_ALPHA
   rotate: false
   xy: 0, 1236
@@ -67,21 +67,21 @@ agent_ALPHA
   index: 1
 sign01_ALPHA
   rotate: false
-  xy: 0, 2036
+  xy: 948, 1686
   size: 400, 100
   orig: 400, 100
   offset: 0, 0
   index: 1
 next
   rotate: false
-  xy: 500, 1536
+  xy: 1600, 1536
   size: 200, 100
   orig: 200, 100
   offset: 0, 0
   index: -1
 ropeKnot_ALPHA
   rotate: false
-  xy: 1100, 1536
+  xy: 200, 1686
   size: 24, 24
   orig: 24, 24
   offset: 0, 0
@@ -102,28 +102,28 @@ citizen01_ALPHA
   index: 1
 sign02_ALPHA
   rotate: false
-  xy: 0, 2136
+  xy: 0, 2186
   size: 1800, 100
   orig: 1800, 100
   offset: 0, 0
   index: 1
 quit
   rotate: false
-  xy: 900, 1536
+  xy: 0, 1686
   size: 200, 100
   orig: 200, 100
   offset: 0, 0
   index: -1
 play
   rotate: false
-  xy: 700, 1536
+  xy: 1800, 1536
   size: 200, 100
   orig: 200, 100
   offset: 0, 0
   index: -1
 sign03_ALPHA
   rotate: false
-  xy: 0, 2236
+  xy: 0, 2286
   size: 1400, 100
   orig: 1400, 100
   offset: 0, 0
@@ -137,7 +137,7 @@ credits
   index: -1
 rope_ALPHA
   rotate: false
-  xy: 1124, 1536
+  xy: 224, 1686
   size: 24, 24
   orig: 24, 24
   offset: 0, 0

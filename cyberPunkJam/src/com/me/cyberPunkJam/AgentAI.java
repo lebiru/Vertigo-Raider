@@ -3,7 +3,7 @@ package com.me.cyberPunkJam;
 public class AgentAI 
 {
 	//How close the player is to losing. If 100%, game is lost
-	float percentage = 0;
+	float agentAIpercentage = 0;
 	float decaySpeed = 0.05f;
 	
 	public AgentAI()
@@ -17,15 +17,15 @@ public class AgentAI
 	public void update() 
 	{
 		//decay percentage
-		if(percentage > 0)
+		if(agentAIpercentage > 0)
 		{
-			percentage -= decaySpeed;
+			agentAIpercentage -= decaySpeed;
 		}
 		
 		//bounce percentage up to 0 if negative
-		if(percentage < 0 )
+		if(agentAIpercentage < 0 )
 		{
-			percentage = 0;
+			agentAIpercentage = 0;
 		}
 		
 		roundPercentage();
@@ -37,7 +37,7 @@ public class AgentAI
 	 */
 	private void roundPercentage() 
 	{
-		percentage = (float)Math.round((percentage) * 1000) / 1000;
+		agentAIpercentage = (float)Math.round((agentAIpercentage) * 1000) / 1000;
 	}
 
 	/**
@@ -46,16 +46,15 @@ public class AgentAI
 	 */
 	public void wrongKeyImpulse(float deduction) 
 	{
-		percentage += deduction;
+		agentAIpercentage += deduction;
 		roundPercentage();
 		
 	}
 
 	public void reset() 
 	{
-		percentage = 0;
+		agentAIpercentage = 0;
 		roundPercentage();
-		
 	}
 	
 	

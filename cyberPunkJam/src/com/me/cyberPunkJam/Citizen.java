@@ -50,11 +50,7 @@ public class Citizen
 		else
 		{
 			dx = -1;
-		}
-		
-		if(dx < 0)
-		{
-			citizenAnimatedSprite.flipFrames(true, false, true);
+			citizenAnimatedSprite.flipFrames(true, false);
 		}
 		
 		
@@ -69,20 +65,25 @@ public class Citizen
 
 	public void checkOffScreen(int virtualWidth, int virtualHeight) 
 	{
-		if(citizenX >= virtualWidth + citizenAnimatedSprite.getWidth() + 500)
+		if(citizenX >= virtualWidth + citizenAnimatedSprite.getWidth() + 200)
 		{
 			dx *= -1;
+			citizenX -= 100;
 			if(dx < 0)
 			{
-				citizenAnimatedSprite.flipFrames(true, false, true);
-				
+				citizenAnimatedSprite.flipFrames(true, false);
 			}
 			
 		}
 		
-		else if(citizenX <= 0 - citizenAnimatedSprite.getWidth() - 100)
+		if(citizenX <= 0 - citizenAnimatedSprite.getWidth() - 200)
 		{
 			dx *= -1;
+			citizenX += 100;
+			if(dx > 0)
+			{
+				citizenAnimatedSprite.flipFrames(true, false);
+			}
 		}
 		
 	}

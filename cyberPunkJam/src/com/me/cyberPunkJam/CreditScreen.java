@@ -7,6 +7,7 @@ import aurelienribon.tweenengine.BaseTween;
 import aurelienribon.tweenengine.Timeline;
 import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenCallback;
+import aurelienribon.tweenengine.TweenEquations;
 import aurelienribon.tweenengine.TweenManager;
 
 import com.badlogic.gdx.Game;
@@ -36,7 +37,7 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
  * @author Biru
  *
  */
-public class MainMenuScreen implements Screen 
+public class CreditScreen implements Screen 
 {
 	SpriteBatch batch;
 	VertigoRaiderGame vrg;
@@ -57,7 +58,7 @@ public class MainMenuScreen implements Screen
 	//particle effects
 	private ParticleEffect effect;
 
-	public MainMenuScreen(final VertigoRaiderGame vrg) 
+	public CreditScreen(final VertigoRaiderGame vrg) 
 	{
 		this.vrg = vrg;
 		this.batch = vrg.batch;
@@ -121,62 +122,36 @@ public class MainMenuScreen implements Screen
 		table.setFillParent(true);
 
 		// creating heading
-		Label heading = new Label(VertigoRaiderGame.TITLE, skin, "big");
+		Label heading = new Label("Vertigo Raiders", skin, "big");
+		
+		Label lineOne = new Label("Bilal | Programmer | @ninjabit6", skin, "default");
+		Label lineTwo = new Label("Nico | Art |  www.nicotraut.com", skin, "default");
+		Label lineThree = new Label("Theodore | Music | www.soundcloud.com/ttvgm", skin, "default");
+		
 		heading.setFontScale(2);
 
 		// creating buttons
-		TextButton buttonPlay = new TextButton("PLAY", skin, "default");
-		buttonPlay.addListener(new ClickListener() 
+		TextButton buttonMain = new TextButton("Back", skin, "big");
+		buttonMain.addListener(new ClickListener() 
 		{
 
 			@Override
 			public void clicked(InputEvent event, float x, float y) 
 			{
-				((Game) Gdx.app.getApplicationListener()).setScreen(new GameScreen(vrg));
+				((Game) Gdx.app.getApplicationListener()).setScreen(new MainMenuScreen(vrg));
 			}
 
 		});
-		buttonPlay.pad(15);
+		buttonMain.pad(15);
 
-		TextButton buttonCredits = new TextButton("CREDITS", skin, "default");
-		buttonCredits.addListener(new ClickListener() 
-		{
-
-			@Override
-			public void clicked(InputEvent event, float x, float y) 
-			{
-				((Game) Gdx.app.getApplicationListener()).setScreen(new CreditScreen(vrg));
-			}
-
-		});
-		buttonCredits.pad(15);
-
-		TextButton buttonExit = new TextButton("EXIT", skin, "default");
-		buttonExit.addListener(new ClickListener() 
-		{
-
-			@Override
-			public void clicked(InputEvent event, float x, float y) {
-				Timeline.createParallel().beginParallel()
-				.push(Tween.to(table, ActorAccessor.ALPHA, .75f).target(0))
-				.push(Tween.to(table, ActorAccessor.Y, .75f).target(table.getY() - 50)
-						.setCallback(new TweenCallback() {
-
-							@Override
-							public void onEvent(int type, BaseTween<?> source) {
-								Gdx.app.exit();
-							}
-						}))
-						.end().start(tweenManager);
-			}
-		});
-		buttonExit.pad(15);
 
 		// putting stuff together
 		table.add(heading).spaceBottom(100).row();
-		table.add(buttonPlay).spaceBottom(15).row();
-		table.add(buttonCredits).spaceBottom(15).row();
-		table.add(buttonExit);
+		table.add(lineOne).spaceBottom(75).row();
+		table.add(lineTwo).spaceBottom(75).row();
+		table.add(lineThree).spaceBottom(75).row();
+		table.add(buttonMain).spaceBottom(15).row();
+
 
 		stage.addActor(table);
 
@@ -194,14 +169,27 @@ public class MainMenuScreen implements Screen
 		.push(Tween.to(heading, ActorAccessor.RGB, .5f).target(1, 0, 1))
 		.push(Tween.to(heading, ActorAccessor.RGB, .5f).target(1, 1, 1))
 		.end().repeat(Tween.INFINITY, 0).start(tweenManager);
+		
+		Timeline.createSequence().beginSequence()
+		.push(Tween.to(lineOne, ActorAccessor.Y, 1.0f).target(340f).ease(TweenEquations.easeInBounce))
+		.end().start(tweenManager);
+		
+		Timeline.createSequence().beginSequence()
+		.push(Tween.to(lineTwo, ActorAccessor.Y, 1.0f).target(300f).ease(TweenEquations.easeInBounce))
+		.end().start(tweenManager);
+		
+		Timeline.createSequence().beginSequence()
+		.push(Tween.to(lineThree, ActorAccessor.Y, 1.0f).target(260f).ease(TweenEquations.easeInBounce))
+		.end().start(tweenManager);
 
 		// heading and buttons fade-in
 		Timeline.createSequence().beginSequence()
-		.push(Tween.set(buttonPlay, ActorAccessor.ALPHA).target(0))
-		.push(Tween.set(buttonExit, ActorAccessor.ALPHA).target(0))
+		.push(Tween.set(buttonMain, ActorAccessor.ALPHA).target(0))
 		.push(Tween.from(heading, ActorAccessor.ALPHA, .25f).target(0))
-		.push(Tween.to(buttonPlay, ActorAccessor.ALPHA, .25f).target(1))
-		.push(Tween.to(buttonExit, ActorAccessor.ALPHA, .25f).target(1))
+		.push(Tween.from(lineOne, ActorAccessor.ALPHA, .25f).target(0))
+		.push(Tween.from(lineTwo, ActorAccessor.ALPHA, .25f).target(0))
+		.push(Tween.from(lineThree, ActorAccessor.ALPHA, .25f).target(0))
+		.push(Tween.to(buttonMain, ActorAccessor.ALPHA, .25f).target(1))
 		.end().start(tweenManager);
 
 		// table fade-in

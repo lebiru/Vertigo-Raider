@@ -17,9 +17,9 @@ public class Hero
 	public Hero(TextureAtlas atlas, float startX, float startY)
 	{
 		//hero
-		heroRegion = atlas.findRegion("hero");
+		heroRegion = atlas.findRegion("hero_ALPHA");
 		TextureRegion[][] heroTR = heroRegion.split(100, 150);
-		heroAnimation = new Animation(0.5f, heroTR[0]);
+		heroAnimation = new Animation(0.1f, heroTR[0]);
 		heroAnimation.setPlayMode(Animation.LOOP_PINGPONG);
 		heroAnimatedSprite = new AnimatedSprite(heroAnimation);
 		heroX = startX;

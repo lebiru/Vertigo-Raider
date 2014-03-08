@@ -18,6 +18,7 @@ public class Sign
 	TextureRegion signRegion;
 	Animation signAnimation;
 	AnimatedSprite signAnimatedSprite;
+	float angle;
 	float x = 0;
 	float y = 0;
 
@@ -37,6 +38,7 @@ public class Sign
 		signAnimation = new Animation(betweenTwo(0.5f, 1.0f), signTR[0]);
 		signAnimation.setPlayMode(Animation.LOOP);
 		signAnimatedSprite = new AnimatedSprite(signAnimation);
+		signAnimatedSprite.setRotation(betweenTwo(0, 10f));
 		this.x = x;
 		this.y = y;
 	}
