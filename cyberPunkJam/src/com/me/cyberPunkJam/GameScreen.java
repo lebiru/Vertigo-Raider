@@ -25,7 +25,7 @@ public class GameScreen implements Screen, InputProcessor
 	private SpriteBatch batch;
 	private OrthographicCamera camera;
 	private VertigoRaiderGame vgr;
-	private Terminal term;
+	public Terminal term;
 	private AgentAI aai;
 
 	private Sound badType;
@@ -33,6 +33,7 @@ public class GameScreen implements Screen, InputProcessor
 	private Sound newLineSound;
 
 	private Music gameTheme;
+	private Music alarmSound;
 
 	//TextureAtlas atlas;
 	TextureRegion buildingRegionStart;
@@ -57,12 +58,25 @@ public class GameScreen implements Screen, InputProcessor
 
 	int numOfSignsLeft = 10;
 	int numOfSignsRight = 10;
+
 	Array<Sign> signsLeft;
 	Array<Sign> signsRight;
+
+	int numOfAntennaLeft = 5;
+	int numOfAntennaRight = 5;
+
+	Array<Antenna> antennaLeft;
+	Array<Antenna> antennaRight;
 
 	int numOfCitizens = 100;
 	Array<Citizen> citizens;
 	long lastCitizenTime;
+
+	int numOfClouds = 10;
+	Array<Cloud> clouds;
+
+	int numOfCars = 4;
+	Array<Car> cars;
 
 	TextureRegion ropeRegion;
 
@@ -73,6 +87,7 @@ public class GameScreen implements Screen, InputProcessor
 	public GameScreen(final VertigoRaiderGame vgr) 
 	{
 		this.vgr = vgr;
+		this.currentLevel = vgr.currentLevel;
 		this.batch = vgr.batch;
 		this.camera = new OrthographicCamera();
 		Gdx.input.setInputProcessor(this);
@@ -90,6 +105,8 @@ public class GameScreen implements Screen, InputProcessor
 		//LOADING MUSIC
 		gameTheme = Gdx.audio.newMusic(Gdx.files.internal("Sound/Music/gameTheme.ogg"));
 		gameTheme.setLooping(true);
+		alarmSound = Gdx.audio.newMusic(Gdx.files.internal("Sound/FX/alarm.wav"));
+		alarmSound.setLooping(true);
 
 		//buildings
 		buildingRegionStart = vgr.atlas.findRegion("building_ALPHA");
@@ -134,8 +151,23 @@ public class GameScreen implements Screen, InputProcessor
 		signsRight = new Array<Sign>();
 		for(int i = 0; i < numOfSignsRight; i++)
 		{
-			signsRight.add(new Sign(vgr.atlas, betweenTwo(endCorner.x, endCorner.x + 400), //200 = sign width
+			signsRight.add(new Sign(vgr.atlas, betweenTwo(endCorner.x, endCorner.x + 200), //200 = sign width
 					betweenTwo(0, endCorner.y - 100)));
+		}
+
+		//antenna
+		antennaLeft = new Array<Antenna>();
+		for(int i = 0; i < numOfAntennaLeft; i++)
+		{
+			antennaLeft.add(new Antenna(vgr.atlas, betweenTwo(startCorner.x - 400, startCorner.x - 300), //200 = sign width
+					startCorner.y));
+		}
+
+		antennaRight = new Array<Antenna>();
+		for(int i = 0; i < numOfAntennaRight; i++)
+		{
+			antennaRight.add(new Antenna(vgr.atlas, betweenTwo(endCorner.x, endCorner.x + 300), //200 = sign width
+					endCorner.y));
 		}
 
 		//citizens
@@ -145,8 +177,22 @@ public class GameScreen implements Screen, InputProcessor
 			spawnCitizen();
 		}
 
+		//clouds
+		clouds = new Array<Cloud>();
+		for(int i = 0; i < numOfClouds; i++)
+		{
+			spawnCloud();
+		}
+
+		//cars
+		cars = new Array<Car>();
+		for(int i = 0; i < numOfCars; i++)
+		{
+			spawnCar();
+		}
+
 		//Loading Terminal
-		term = new Terminal(currentLevel);
+		term = new Terminal(this.currentLevel);
 
 		//Loading Agent AI
 		aai = new AgentAI();
@@ -162,6 +208,22 @@ public class GameScreen implements Screen, InputProcessor
 		//calculate distance hero needs to cross
 		term.calculateHeroTravel(startCorner, endCorner);
 
+
+	}
+
+	private void spawnCloud() 
+	{
+		clouds.add(new Cloud(vgr.atlas, vgr.VIRTUAL_WIDTH, vgr.VIRTUAL_HEIGHT));		
+	}
+
+	private void spawnCar() 
+	{
+		cars.add(new Car(vgr.atlas, vgr.VIRTUAL_WIDTH, vgr.VIRTUAL_HEIGHT));
+	}
+
+	public void spawnCitizen()
+	{
+		citizens.add(new Citizen(vgr.atlas, vgr.VIRTUAL_WIDTH));
 	}
 
 
@@ -183,6 +245,17 @@ public class GameScreen implements Screen, InputProcessor
 		term.percentageComplete = (float)Math.round((term.numOfCharactersTypedCorrectly/term.numOfCharactersInText) * 10000) / 100;
 		term.updateTimer();
 		aai.update();
+		if(aai.agentAIpercentage >= 80 && !alarmSound.isPlaying())
+		{
+			alarmSound.play();
+		}
+		else if(aai.agentAIpercentage < 80)
+		{
+			alarmSound.stop();
+		}
+
+		//check if the player is typing too slow
+		aai.tooSlowImpulse(aai.tooSlowDeduction, term.updateTooSlowImpulse((int)term.timeLeft, aai.tooSlowThreshold));
 
 		checkWinCondition();
 		checkGameOverCondition();
@@ -201,6 +274,15 @@ public class GameScreen implements Screen, InputProcessor
 			s.signAnimatedSprite.setPosition(s.x, s.y);
 		}
 
+		for(Antenna a : antennaLeft)
+		{
+			a.antennaAnimatedSprite.setPosition(a.x, a.y);
+		}
+		for(Antenna a : antennaRight)
+		{
+			a.antennaAnimatedSprite.setPosition(a.x, a.y);
+		}
+
 		//INPUT LOGIC
 
 
@@ -209,6 +291,14 @@ public class GameScreen implements Screen, InputProcessor
 		batch.draw(backgroundRegion, backgroundRegionX, backgroundRegionY);
 		//draw rope
 		batch.draw(ropeRegion, startCorner.x, startCorner.y  - 25, endCorner.x - startCorner.x, 25);
+
+		//draw cars in the foreground
+		for(Car c : cars)
+		{
+			c.moveCar();
+			c.carAnimatedSprite.draw(batch);
+			c.checkOffScreen(vgr.VIRTUAL_WIDTH, vgr.VIRTUAL_HEIGHT);
+		}
 
 		//draw buildings
 		batch.draw(buildingRegionStart, buildingRegionStartX, buildingRegionStartY);
@@ -224,6 +314,17 @@ public class GameScreen implements Screen, InputProcessor
 			s.signAnimatedSprite.draw(batch);
 		}
 
+		for(Antenna a : antennaLeft)
+		{
+			a.antennaAnimatedSprite.draw(batch);
+		}
+		for(Antenna a : antennaRight)
+		{
+			a.antennaAnimatedSprite.draw(batch);
+		}
+
+
+
 		hero.heroAnimatedSprite.draw(batch);
 
 		for(Citizen c : citizens)
@@ -233,6 +334,12 @@ public class GameScreen implements Screen, InputProcessor
 			c.checkOffScreen(vgr.VIRTUAL_WIDTH, vgr.VIRTUAL_HEIGHT);
 		}
 
+		for(Cloud c : clouds)
+		{
+			c.moveCloud();
+			c.cloudAnimatedSprite.draw(batch);
+			c.checkOffScreen(vgr.VIRTUAL_WIDTH, vgr.VIRTUAL_HEIGHT);
+		}
 
 		vgr.font.setScale(1f);
 
@@ -250,63 +357,46 @@ public class GameScreen implements Screen, InputProcessor
 		vgr.font.setScale(2.0f);
 
 		//Percentage complete in the game
-		vgr.font.draw(batch, "PROGRESS " + term.percentageComplete + "%", 50, 700);
+		vgr.font.draw(batch, "PROGRESS: " + term.percentageComplete + "%", 50, 700);
 
 		//Percentage close to losing to the Agent AI
-		vgr.font.setColor(Color.RED);
-		vgr.font.draw(batch, "ALERT " + aai.agentAIpercentage + "%", 50, 740);
+		vgr.font.setColor(1f, 1f - (aai.agentAIpercentage/100f), 0f, 1f);
+		vgr.font.draw(batch, "ALERT: " + aai.agentAIpercentage + "%", 50, 740);
+		vgr.font.setColor(Color.WHITE);
 
 		//timer
-		vgr.font.draw(batch, "TIMER: " + String.valueOf(term.timeLeft), 50, 660);
+		vgr.font.draw(batch, "TIMER: " + String.valueOf(term.timeLeft) + " secs", 50, 660);
 
-		//sequence timer
-		//		vgr.font.draw(batch, "sequence timer: " + String.valueOf(term.sequencerCountdown), 50, 640);
-		//		vgr.font.draw(batch, "sequence start timer: " + String.valueOf(term.sequencerCountdownLimit), 50, 620);
-		//		vgr.font.draw(batch, "timer: " + String.valueOf(term.timer), 50, 600);
-		//		vgr.font.draw(batch, "mode: " + String.valueOf(term.isSequenceMode), 50, 580);
-		//		vgr.font.draw(batch, "cur seq char: " + term.currentSequencerCharacter, 50, 540);
-		vgr.font.draw(batch, "cur typed char: " + term.currentTypedCharacter, 50, 520);
-		vgr.font.draw(batch, "level: " + currentLevel, 50, 500);
-		vgr.font.draw(batch, "line: " + term.currentLine, 50, 480);
-		vgr.font.draw(batch, "cur char" + term.currentCharacter, 50, 460);
-
+//		vgr.font.draw(batch, "right: " + term.numOfCharactersTypedCorrectly +
+//				" wrong: " + term.numOfCharactersTypedIncorrectly +
+//				" percent: " + (term.numOfCharactersTypedTotal / term.numOfCharactersTypedCorrectly) +
+//				" poitns: " + (term.numOfCharactersTypedCorrectly - term.numOfCharactersTypedIncorrectly), 50, 630);
 
 		//sequencer
-		//		if(term.isSequenceMode == true)
-		//		{
-		//			batch.draw(sequencerBackground, 300, 200);
-		//			
-		//			vgr.font.setScale(4.0f);
-		//			vgr.font.setColor(Color.rgba8888(0.9f, 0.9f,  ran.nextFloat(), 1));
-		//			vgr.font.draw(batch, "SEQUENCER", vgr.VIRTUAL_WIDTH/2 - 200, 600);
-		//			
-		//			vgr.font.setScale(6.0f);
-		//			//required typing
-		//			vgr.font.draw(batch, term.sequence, vgr.VIRTUAL_WIDTH/2 - 100, 400);
-		//			//completed typing
-		//			vgr.font.setColor(Color.GREEN);
-		//			vgr.font.draw(batch, term.completedLineSequencer, vgr.VIRTUAL_WIDTH/2 - 100, 400);
-		//			vgr.font.setColor(Color.rgba8888(0.9f, ran.nextFloat(), 0.9f, 1));
-		//			
-		//			vgr.font.setScale(2.0f);
-		//		}
+		if(term.isSequenceMode == true)
+		{
+			batch.draw(sequencerBackground, 300, 200);
 
-		//agent speak
-		//TODO Implement agent speaking logic
-		//vgr.font.draw(batch, "Where could he be?", agentX + agentAnimatedSprite.getWidth(), agentY + agentAnimatedSprite.getHeight());
+			vgr.font.setScale(4.0f);
+			vgr.font.setColor(Color.rgba8888(0.9f, 0.9f,  ran.nextFloat(), 1));
+			vgr.font.draw(batch, "SEQUENCER", vgr.VIRTUAL_WIDTH/2 - 200, 600);
 
+			vgr.font.setScale(6.0f);
+			//required typing
+			vgr.font.draw(batch, term.sequence, vgr.VIRTUAL_WIDTH/2 - 100, 400);
+			//completed typing
+			vgr.font.setColor(Color.GREEN);
+			vgr.font.draw(batch, term.completedLineSequencer, vgr.VIRTUAL_WIDTH/2 - 100, 400);
+			vgr.font.setColor(Color.rgba8888(0.9f, ran.nextFloat(), 0.9f, 1));
+
+			vgr.font.setScale(2.0f);
+		}
 
 		//reset color
 		vgr.font.setColor(Color.rgba8888(0.9f, ran.nextFloat(), 0.9f, 1));;
 
 		vgr.font.setScale(1.0f);
 
-		//		vgr.font.setScale(0.6f);
-		//		for(int i = term.currentLinePointer; i <= term.textLinesSize; i++)
-		//		{
-		//			vgr.font.drawWrapped(batch, term.textLines[i], 10, 650 - (i * 10), 300);
-		//		}
-		//		vgr.font.setScale(1.0f);
 		batch.end();
 
 
@@ -316,15 +406,17 @@ public class GameScreen implements Screen, InputProcessor
 	{
 		if(aai.agentAIpercentage >= 100)
 		{
+			this.dispose();
+			vgr.setScreen(vgr.gameOverScreen);
+
+
+		}
+
+		else if(term.timeLeft < 0)
+		{
 			vgr.setScreen(vgr.gameOverScreen);
 			this.hide();
 		}
-
-		//		else if(term.timeLeft < 0)
-		//		{
-		//			vgr.setScreen(vgr.gameOverScreen);
-		//			this.hide();
-		//		}
 
 	}
 
@@ -332,8 +424,18 @@ public class GameScreen implements Screen, InputProcessor
 	{
 		if(term.percentageComplete >= 100)
 		{
-			vgr.setScreen(vgr.transitionScreen);
-			this.hide();
+			this.dispose();
+			if(vgr.currentLevel >= term.levels.size - 1)
+			{
+				vgr.setScreen(new WinScreen(vgr));
+			}
+			//if not, just continue as usual
+			else
+			{
+				vgr.setScreen(vgr.transitionScreen);
+			}
+			
+
 		}
 	}
 
@@ -381,6 +483,8 @@ public class GameScreen implements Screen, InputProcessor
 		//disposing sound
 		goodType.dispose();
 		badType.dispose();
+		alarmSound.dispose();
+
 
 
 	}
@@ -406,78 +510,81 @@ public class GameScreen implements Screen, InputProcessor
 		{
 			term.currentTypedCharacter = character;
 			//If we are not in Sequencer Mode
-			//			if(term.isSequenceMode == false)
-			//			{
-			//If player typed the correct letter
-			System.out.println(term.currentCharacter);
-			System.out.println(term.currentTypedCharacter);
-			System.out.println(character);
-			System.out.println(term.levels.get(currentLevel));
-			if(term.currentTypedCharacter == term.currentCharacter)
+			if(term.isSequenceMode == false)
 			{
-				goodType.play(0.3f);
-				moveHero();
-				term.completedLine += character;
-				term.numOfCharactersTypedCorrectly++;
-				term.numOfCharactersTypedTotal++;
-
-				//if there are still some characters to type on the line
-				if(term.currentCharacterPointer + 1 < term.sizeOfCurrentLineArray)
+				//If player typed the correct letter
+				System.out.println(term.currentCharacter);
+				System.out.println(term.currentTypedCharacter);
+				System.out.println(character);
+				System.out.println(term.levels.get(currentLevel));
+				if(term.currentTypedCharacter == term.currentCharacter)
 				{
-					term.currentCharacterPointer++;
-					term.currentCharacter = term.currentLineArray[term.currentCharacterPointer];
+					goodType.play(0.3f);
+					moveHero();
+					term.completedLine += character;
+					term.numOfCorrectCharactersTyped++;
+					term.numOfCharactersTypedCorrectly++;
+					term.numOfCharactersTypedTotal++;
+
+					//if there are still some characters to type on the line
+					if(term.currentCharacterPointer + 1 < term.sizeOfCurrentLineArray)
+					{
+						term.currentCharacterPointer++;
+						term.currentCharacter = term.currentLineArray[term.currentCharacterPointer];
+					}
+					//else if we've reached the end of the line
+					else
+					{
+						newLineSound.play();
+						term.currentCharacterPointer = 0;
+						term.processNextLine();
+						term.currentCharacter = term.currentLineArray[term.currentCharacterPointer];
+					}
 				}
-				//else if we've reached the end of the line
+
+				//If player typed the incorrect letter
 				else
 				{
-					newLineSound.play();
-					term.currentCharacterPointer = 0;
-					term.processNextLine();
-					term.currentCharacter = term.currentLineArray[term.currentCharacterPointer];
+					badType.play(0.3f);
+					aai.wrongKeyImpulse(3f);
+					term.numOfCharactersTypedIncorrectly++;
+					term.numOfCharactersTypedTotal++;
 				}
 			}
 
-			//If player typed the incorrect letter
+			//If we are in Sequencer Mode
 			else
 			{
-				badType.play(0.3f);
-				aai.wrongKeyImpulse(3f);
-				term.numOfCharactersTypedIncorrectly++;
-				term.numOfCharactersTypedTotal++;
+				if(term.currentTypedCharacter == term.currentSequencerCharacter)
+				{
+					goodType.play();
+					term.completedLineSequencer += character;
+					term.numOfCorrectCharactersTyped++;
+
+					//if there are still some sequencer characters to type on the line
+					if(term.currentCharacterPointerSequencer + 1 < term.sizeOfCurrentLineArraySequencer)
+					{
+						term.currentCharacterPointerSequencer++;
+						term.currentSequencerCharacter = term.currentLineArraySequencer[term.currentCharacterPointerSequencer];
+					}
+
+					//else if we've reached the end of the sequencer
+					else
+					{
+						newLineSound.play();
+						term.generateSequence();
+					}
+
+				}
+
+				//if the player typed the incorrect sequencer input
+				else
+				{
+					badType.play(0.3f);
+					aai.wrongKeyImpulse(3f);
+				}
 			}
 		}
-
-		//If we are in Sequencer Mode
-		//			else
-		//			{
-		//				if(term.currentTypedCharacter == term.currentSequencerCharacter)
-		//				{
-		//					goodType.play();
-		//					term.completedLineSequencer += character;
-		//					
-		//					//if there are still some sequencer characters to type on the line
-		//					if(term.currentCharacterPointerSequencer + 1 < term.sizeOfCurrentLineArraySequencer)
-		//					{
-		//						term.currentCharacterPointerSequencer++;
-		//						term.currentSequencerCharacter = term.currentLineArraySequencer[term.currentCharacterPointerSequencer];
-		//					}
-		//					
-		//					//else if we've reached the end of the sequencer
-		//					else
-		//					{
-		//						newLineSound.play();
-		//						term.generateSequence();
-		//					}
-
-		//}
-
-		//if the player typed the incorrect sequencer input
-		//				else
-		//				{
-		//					badType.play(0.3f);
-		//					aai.wrongKeyImpulse(3f);
-		//				}
-
 		return false;
 	}
 
@@ -531,8 +638,8 @@ public class GameScreen implements Screen, InputProcessor
 
 	public void nextLevel()
 	{
+		System.out.println("nextlevel Gamescreen run");
 		aai.reset();
-		currentLevel++;
 		term.nextLevel(startCorner, endCorner);
 		hero.reset(startCorner);
 
@@ -544,10 +651,6 @@ public class GameScreen implements Screen, InputProcessor
 		return ran.nextFloat() * sub + min;
 	}
 
-	public void spawnCitizen()
-	{
-		citizens.add(new Citizen(vgr.atlas, vgr.VIRTUAL_WIDTH));
-		lastCitizenTime = TimeUtils.nanoTime();
-	}
+
 
 }

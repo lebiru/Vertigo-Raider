@@ -127,6 +127,7 @@ public class CreditScreen implements Screen
 		Label lineOne = new Label("Bilal | Programmer | @ninjabit6", skin, "default");
 		Label lineTwo = new Label("Nico | Art |  www.nicotraut.com", skin, "default");
 		Label lineThree = new Label("Theodore | Music | www.soundcloud.com/ttvgm", skin, "default");
+		Label lineFour = new Label("itch.io #CyberPunkJam 2014", skin, "default");
 		
 		heading.setFontScale(2);
 
@@ -138,6 +139,7 @@ public class CreditScreen implements Screen
 			@Override
 			public void clicked(InputEvent event, float x, float y) 
 			{
+				dispose();
 				((Game) Gdx.app.getApplicationListener()).setScreen(new MainMenuScreen(vrg));
 			}
 
@@ -147,10 +149,11 @@ public class CreditScreen implements Screen
 
 		// putting stuff together
 		table.add(heading).spaceBottom(100).row();
-		table.add(lineOne).spaceBottom(75).row();
-		table.add(lineTwo).spaceBottom(75).row();
-		table.add(lineThree).spaceBottom(75).row();
-		table.add(buttonMain).spaceBottom(15).row();
+		table.add(lineOne).spaceBottom(20).row();
+		table.add(lineTwo).spaceBottom(20).row();
+		table.add(lineThree).spaceBottom(20).row();
+		table.add(lineFour).spaceTop(30f).row();
+		table.add(buttonMain).spaceTop(30f).row();
 
 
 		stage.addActor(table);
@@ -228,8 +231,10 @@ public class CreditScreen implements Screen
 	}
 
 	@Override
-	public void dispose() {
-		// TODO Auto-generated method stub
+	public void dispose() 
+	{
+		stage.dispose();
+		skin.dispose();
 
 	}
 

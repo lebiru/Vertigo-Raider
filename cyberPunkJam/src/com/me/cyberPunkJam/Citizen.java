@@ -21,7 +21,7 @@ public class Citizen
 	public Citizen(TextureAtlas atlas, float screenWidth)
 	{
 		//citizen
-		int citizenSwitch = ran.nextInt(5);
+		int citizenSwitch = ran.nextInt(6);
 		switch(citizenSwitch) {
 		case 0: citizenRegion = atlas.findRegion("citizen01_ALPHA");
 			    break;
@@ -31,11 +31,14 @@ public class Citizen
 	    		break;
 		case 3: citizenRegion = atlas.findRegion("citizen04_ALPHA");
 	    		break;
-		case 4: citizenRegion = atlas.findRegion("agent_ALPHA");
+		case 4: citizenRegion = atlas.findRegion("citizen05_ALPHA");
+				break;
+		case 5: citizenRegion = atlas.findRegion("agent_ALPHA");
+				break;
 		}
 		TextureRegion[][] citizenTR = citizenRegion.split(100, 150);
 		speed = betweenTwo(2f, 5f);
-		citizenAnimation = new Animation(0.15f/speed, citizenTR[0]);
+		citizenAnimation = new Animation(0.25f/speed, citizenTR[0]);
 		citizenAnimation.setPlayMode(Animation.LOOP_PINGPONG);
 		citizenAnimatedSprite = new AnimatedSprite(citizenAnimation);
 		citizenAnimatedSprite.setScale(betweenTwo(1f, 1.5f));

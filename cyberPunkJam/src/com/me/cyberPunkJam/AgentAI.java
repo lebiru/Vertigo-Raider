@@ -5,6 +5,8 @@ public class AgentAI
 	//How close the player is to losing. If 100%, game is lost
 	float agentAIpercentage = 0;
 	float decaySpeed = 0.05f;
+	float tooSlowDeduction = 5;
+	int tooSlowThreshold = 4;
 	
 	public AgentAI()
 	{
@@ -47,7 +49,19 @@ public class AgentAI
 	public void wrongKeyImpulse(float deduction) 
 	{
 		agentAIpercentage += deduction;
-		roundPercentage();
+		roundPercentage();	
+	}
+	
+	/**
+	 * TooSlowImpulse: Fired when the rateOfTyping is below a certain threshold. 
+	 */
+	public void tooSlowImpulse(float deduction, boolean isTooSlow)
+	{
+		if(isTooSlow)
+		{
+			agentAIpercentage += deduction;
+			roundPercentage();
+		}
 		
 	}
 

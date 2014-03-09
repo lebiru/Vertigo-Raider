@@ -32,7 +32,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 
-public class GameOverScreen implements Screen 
+public class WinScreen implements Screen 
 {
 	SpriteBatch batch;
 	VertigoRaiderGame vrg;
@@ -53,7 +53,7 @@ public class GameOverScreen implements Screen
 	//particle effects
 	private ParticleEffect effect;
 
-	public GameOverScreen(final VertigoRaiderGame vrg) 
+	public WinScreen(final VertigoRaiderGame vrg) 
 	{
 		this.vrg = vrg;
 		this.batch = vrg.batch;
@@ -95,8 +95,8 @@ public class GameOverScreen implements Screen
 	}
 
 	@Override
-	public void resize(int width, int height) {
-		// TODO Auto-generated method stub
+	public void resize(int width, int height) 
+	{
 
 	}
 
@@ -113,47 +113,35 @@ public class GameOverScreen implements Screen
 		table.setFillParent(true);
 
 		// creating heading
-		Label heading = new Label("GAME OVER", skin, "big");
+		Label heading = new Label("CONGRATULATIONS!", skin, "default");
 		heading.setFontScale(1.5f);
+		
+		Label lineOne = new Label("Thanks to your elite hacking skillz, the world is safe from MEGACOM.", skin, "small");
+		Label lineTwo = new Label("Now go order some pizza and diet coke ya hacker!", skin, "small");
 
 		// creating buttons
-		TextButton buttonPlay = new TextButton("ONE MORE TIME", skin, "default");
-		buttonPlay.addListener(new ClickListener() 
+		TextButton buttonMainMenu = new TextButton("212-944-0400", skin, "default");
+		buttonMainMenu.addListener(new ClickListener() 
 		{
-
-			@Override
-			public void clicked(InputEvent event, float x, float y) 
-			{
-				vrg.gameScreen.nextLevel();
-				((Game) Gdx.app.getApplicationListener()).setScreen(new GameScreen(vrg));
-				dispose();
-			}
-
-		});
-		buttonPlay.pad(15);
-
-		// creating buttons
-		TextButton buttonQuit = new TextButton("I GIVE UP", skin, "default");
-		buttonQuit.addListener(new ClickListener() 
-		{
-
 			@Override
 			public void clicked(InputEvent event, float x, float y) 
 			{
 				vrg.gameScreen.resetLevel();
-				vrg.currentLevel = 0;
 				((Game) Gdx.app.getApplicationListener()).setScreen(new MainMenuScreen(vrg));
 				dispose();
 			}
 
 		});
-		buttonQuit.pad(15);
+		buttonMainMenu.pad(15);
+
+	
 
 
 		// putting stuff together
 		table.add(heading).spaceBottom(100).row();
-		table.add(buttonPlay).spaceBottom(15).row();
-		table.add(buttonQuit).spaceBottom(15).row();
+		table.add(lineOne).spaceBottom(100).row();
+		table.add(lineTwo).spaceBottom(100).row();
+		table.add(buttonMainMenu).spaceBottom(15).row();
 
 		stage.addActor(table);
 
@@ -170,10 +158,9 @@ public class GameOverScreen implements Screen
 
 		// heading and buttons fade-in
 		Timeline.createSequence().beginSequence()
-		.push(Tween.set(buttonPlay, ActorAccessor.ALPHA).target(0))
+		.push(Tween.set(buttonMainMenu, ActorAccessor.ALPHA).target(0))
 		.push(Tween.from(heading, ActorAccessor.ALPHA, .25f).target(0).ease(TweenEquations.easeInBack))
-		.push(Tween.to(buttonPlay, ActorAccessor.ALPHA, .25f).target(1))
-		.push(Tween.to(buttonQuit, ActorAccessor.ALPHA, .25f).target(1))
+		.push(Tween.to(buttonMainMenu, ActorAccessor.ALPHA, .25f).target(1))
 		.end().start(tweenManager);
 
 		// table fade-in

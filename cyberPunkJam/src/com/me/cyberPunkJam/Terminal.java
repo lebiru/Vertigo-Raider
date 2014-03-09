@@ -50,18 +50,27 @@ public class Terminal
 	Array<URL> levels = new Array<URL>();
 
 	//Sequencers
-	//	long sequencerCountdown = 0;
-	//	long sequencerCountdownLimit = 0;
-	//	long sequencerTimer;
-	//	long lastCompletedSequence = 0;
-	//	boolean isSequenceMode = false;
-	//	String[] possibleSequences = {"cyber", "hax0r", "snow", "Zero Cool", "Hiro"};
-	//	String sequence = possibleSequences[ran.nextInt(possibleSequences.length)];
-	//	int sizeOfCurrentLineArraySequencer = sequence.length();
-	//	char currentSequencerCharacter = sequence.charAt(0);
-	//	String completedLineSequencer = "";
-	//	int currentCharacterPointerSequencer = 0;
-	//	char[] currentLineArraySequencer = sequence.toCharArray();
+	long sequencerCountdown = 0;
+	long sequencerCountdownLimit = 0;
+	long sequencerTimer;
+	long lastCompletedSequence = 0;
+	boolean isSequenceMode = false;
+	String[] possibleSequences = {"cyber", "hax0r", "snow", "Zero Cool", "Hiro"};
+	String sequence = possibleSequences[ran.nextInt(possibleSequences.length)];
+	int sizeOfCurrentLineArraySequencer = sequence.length();
+	char currentSequencerCharacter = sequence.charAt(0);
+	String completedLineSequencer = "";
+	int currentCharacterPointerSequencer = 0;
+	char[] currentLineArraySequencer = sequence.toCharArray();
+	
+	//Rate of Typing Logic
+	
+	//recalculated every second to determine how many letters are typed every second
+	int rateOfTyping = 0;
+	//listener between every second that counts the ...
+	int numOfCorrectCharactersTyped = 0;
+	//logs the current second. if different, we know the timer has updated, then we save it.
+	int lastRecordedSecond = 0;
 
 	float pixelsHeroNeedsToTravel = 200; //this should be the distance between building corners
 	float pixelsPerMove = 0; //every time user types a correct word, player must move this amount of pixels.
@@ -76,6 +85,7 @@ public class Terminal
 	public Terminal(int currentLevel)
 	{
 		this.currentLevel = currentLevel;
+		System.out.println("terminal constructor run, LEVEL: " + currentLevel);
 		try {
 			makeURL();
 		} catch (MalformedURLException e) {
@@ -145,9 +155,9 @@ public class Terminal
 		}
 
 		timeLimit = count;
-		//		sequencerCountdownLimit = (long) betweenTwo(3f, 5f);
-		//		sequencerCountdown = sequencerCountdownLimit;
-		//		lastCompletedSequence = System.nanoTime();
+		sequencerCountdownLimit = (long) betweenTwo(20f, 50f);
+		sequencerCountdown = sequencerCountdownLimit;
+		lastCompletedSequence = System.nanoTime();
 
 		return count;
 
@@ -164,7 +174,7 @@ public class Terminal
 		for(int currentLine = 0; currentLine < textLines2.length; currentLine++)
 		{
 			textLines2[currentLine] = textLines2[currentLine].replace("\n", ""); 
-			textLines2[currentLine] = textLines2[currentLine].replaceFirst(" ", ""); 
+			//textLines2[currentLine] = textLines2[currentLine].replaceFirst(" ", ""); 
 		}
 
 	}
@@ -293,6 +303,7 @@ public class Terminal
 		currentCharacter = currentLineArray[currentCharacterPointer];
 		//generate a new sequencer
 		//generateSequence();
+		System.out.println("terminal nextLevel run, LEVEL: " + currentLevel);
 
 	}
 
@@ -304,35 +315,68 @@ public class Terminal
 		timer = Math.round((double)(System.nanoTime() - startTimer) / 1000000000);
 		timeLeft = timeLimit - timer;
 
-		//		sequencerTimer = Math.round((double)(System.nanoTime() - lastCompletedSequence) / 1000000000);
-		//		if(sequencerCountdown > 0)
-		//		{
-		//			sequencerCountdown = (long) ((long) sequencerCountdownLimit - sequencerTimer);
-		//			isSequenceMode = false;
-		//		}
-		//		if(sequencerCountdown <= 0)
-		//		{
-		//			isSequenceMode = true;
-		//		}
+		sequencerTimer = Math.round((double)(System.nanoTime() - lastCompletedSequence) / 1000000000);
+		if(sequencerCountdown > 0)
+		{
+			sequencerCountdown = (long) ((long) sequencerCountdownLimit - sequencerTimer);
+			isSequenceMode = false;
+		}
+		if(sequencerCountdown <= 0)
+		{
+			isSequenceMode = true;
+		}
 	}
-
+	
+	/**
+	 * updateTooSlowImpulse: Updates the logic for the tooSlow method
+	 * currentSecond: the current second as determined by the game timer
+	 * threshold: the rate of correct keys the player has to type in order
+	 * to avoid getting penalized by the agent AI.
+	 */
+	public boolean updateTooSlowImpulse(int currentSecond, int threshold)
+	{
+		//if we are still within the same second window
+		if(currentSecond == lastRecordedSecond)
+		{
+			return false;
+		}
+		
+		//if we are in a new second window
+		if(currentSecond != lastRecordedSecond)
+		{
+			lastRecordedSecond = currentSecond;
+			rateOfTyping = numOfCorrectCharactersTyped;
+			numOfCorrectCharactersTyped = 0;
+			if(rateOfTyping < threshold)
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+		
+		return false;
+	}
+	
 	//Generate a QTE Sequence
-	//	public void generateSequence()
-	//	{
-	//		sequence = possibleSequences[ran.nextInt(possibleSequences.length)];
-	//		sequencerCountdownLimit = (long) betweenTwo(3f, 5f);
-	//		sequencerCountdown = sequencerCountdownLimit;
-	//		sequencerTimer = Math.round((double)(System.nanoTime() - lastCompletedSequence) / 100000000);
-	//		lastCompletedSequence = System.nanoTime();
-	//		
-	//		isSequenceMode = false;
-	//		
-	//		sizeOfCurrentLineArraySequencer = sequence.length();
-	//		currentSequencerCharacter = sequence.charAt(0);
-	//		completedLineSequencer = "";
-	//		currentCharacterPointerSequencer = 0;
-	//		currentLineArraySequencer = sequence.toCharArray();
-	//	}
+	public void generateSequence()
+	{
+		sequence = possibleSequences[ran.nextInt(possibleSequences.length)];
+		sequencerCountdownLimit = (long) betweenTwo(20f, 50f);
+		sequencerCountdown = sequencerCountdownLimit;
+		sequencerTimer = Math.round((double)(System.nanoTime() - lastCompletedSequence) / 100000000);
+		lastCompletedSequence = System.nanoTime();
+
+		isSequenceMode = false;
+
+		sizeOfCurrentLineArraySequencer = sequence.length();
+		currentSequencerCharacter = sequence.charAt(0);
+		completedLineSequencer = "";
+		currentCharacterPointerSequencer = 0;
+		currentLineArraySequencer = sequence.toCharArray();
+	}
 
 	public float betweenTwo(float min, float max)
 	{
@@ -346,11 +390,12 @@ public class Terminal
 	 */
 	public void makeURL() throws MalformedURLException
 	{
-		levels.add(new URL("https://gist.githubusercontent.com/zen6/9360518/raw/30d74d258442c7c65512eafab474568dd706c430/short"));
-		levels.add(new URL("https://gist.githubusercontent.com/zen6/9339775/raw/35a33634f3e4c2cc6fce957137a0e77e247aac8b/tutorial"));
-		levels.add(new URL("https://gist.githubusercontent.com/zen6/9301336/raw/9e6aeb022a4080d6b6a9039560addd37e4adf42c/test"));
-		levels.add(new URL("https://gist.githubusercontent.com/zen6/9300956/raw/e512a79ab7a63dd284155c9ed0b79d9e5e3b7183/Melissa"));
-		levels.add(new URL("https://gist.githubusercontent.com/zen6/9300973/raw/682f04f8d6a7723887d674e2496cf956e7bffedc/Zeus"));
+//		levels.add(new URL("https://gist.githubusercontent.com/zen6/9360518/raw/30d74d258442c7c65512eafab474568dd706c430/short"));
+//		levels.add(new URL("https://gist.githubusercontent.com/zen6/9360518/raw/30d74d258442c7c65512eafab474568dd706c430/short"));
+		
+		levels.add(new URL("https://gist.githubusercontent.com/zen6/9299803/raw/aee25f078f43249043771df64ae0dffc833c3f1d/iloveyou"));
+		levels.add(new URL("https://gist.githubusercontent.com/zen6/9300956/raw/d16f38add4d392fa15fdd6dddf235457ea62a264/Melissa"));
+		levels.add(new URL("https://gist.githubusercontent.com/zen6/9300973/raw/1e36e23efbbc198543a5644c15c0335cfa676cbc/Zeus"));
 
 	}
 }

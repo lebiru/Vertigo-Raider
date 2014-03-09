@@ -2,83 +2,202 @@ package com.me.cyberPunkJam;
 
 import java.util.Random;
 
+import tweens.ActorAccessor;
+
+import aurelienribon.tweenengine.BaseTween;
+import aurelienribon.tweenengine.Timeline;
+import aurelienribon.tweenengine.Tween;
+import aurelienribon.tweenengine.TweenCallback;
+import aurelienribon.tweenengine.TweenEquations;
+import aurelienribon.tweenengine.TweenManager;
+
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL10;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.ParticleEffect;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 
 public class TransitionScreen implements Screen 
 {
+//	SpriteBatch batch;
+//	VertigoRaiderGame vrg;
+//	private OrthographicCamera camera;
+//	private BitmapFont font;
+//	private Random ran = new Random();
+//	private Vector2 mousePos;
+//	
+//	Button nextMissionButton;
+	
 	SpriteBatch batch;
 	VertigoRaiderGame vrg;
 	private OrthographicCamera camera;
 	private BitmapFont font;
 	private Random ran = new Random();
 	private Vector2 mousePos;
+
+	TextureRegion backgroundRegion;
+	float backgroundRegionX = 0;
+	float backgroundRegionY = 0;
+
+	private Stage stage;
+	private Skin skin;
+	private Table table;
+	private TweenManager tweenManager;
 	
-	Button nextMissionButton;
+	//particle effects
+	private ParticleEffect effect;
 	
 	public TransitionScreen(final VertigoRaiderGame vrg) 
 	{
+		
 		this.vrg = vrg;
 		this.batch = vrg.batch;
 		this.font = vrg.font;
-		this.mousePos = new Vector2();
-		
+
 		this.camera = new OrthographicCamera();
 		font.setScale(5f);
-		
-		nextMissionButton = new Button(vrg.atlas.findRegion("next"), vrg.VIRTUAL_WIDTH/2, 300);
+
+		mousePos = new Vector2();
+
+		Texture.setEnforcePotImages(false);
 		
 	}
 
 	@Override
 	public void render(float delta) 
 	{
-	
-		camera.update();
-		camera.apply(Gdx.gl10);
 		
-		//update
-		mousePos.set(Gdx.input.getX(), Gdx.input.getY());
-		if(nextMissionButton.isClicked(mousePos, Gdx.input.isButtonPressed(0)))
-		{
-			vrg.gameScreen.nextLevel();
-			vrg.setScreen(vrg.gameScreen);
-		}
+		Gdx.gl.glClearColor(0, 0, 0, 1);
+		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-		//set view port
-		Gdx.gl.glViewport((int) vrg.viewport.x, (int) vrg.viewport.y, 
-				(int) vrg.viewport.width, (int) vrg.viewport.height);
-
-		Gdx.gl.glClearColor(0, 0, 0.0f, 1); // 1 Alpha = no transparency
-		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
-		
 		batch.begin();
-		font.setScale(5f);
-		font.setColor(Color.rgba8888(0.9f, ran.nextFloat(), 0.9f, 1));
-		font.draw(batch, "MISSION COMPLETE", vrg.VIRTUAL_WIDTH/4, 600);
-	
+		batch.draw(backgroundRegion, backgroundRegionX, backgroundRegionY);
 		
-		batch.draw(nextMissionButton.texture, nextMissionButton.buttonX, nextMissionButton.buttonY);
+	
+		effect.draw(batch, delta);
 		
 		batch.end();
 		
-	}
+		stage.act(delta);
+		stage.draw();
 
-	@Override
-	public void resize(int width, int height) {
-		// TODO Auto-generated method stub
+		tweenManager.update(delta);
+		
+		if(effect.isComplete())
+		{
+			effect.reset();
+		}
+
 		
 	}
 
 	@Override
-	public void show() {
-		// TODO Auto-generated method stub
+	public void resize(int width, int height) 
+	{
+		stage.setViewport(width, height, false);
+		table.invalidateHierarchy();
+		
+	}
+
+	@Override
+	public void show() 
+	{
+		stage = new Stage();
+
+		Gdx.input.setInputProcessor(stage);
+
+		skin = new Skin(Gdx.files.internal("ui/menuSkin.json"), new TextureAtlas("ui/atlas.pack"));
+
+		table = new Table(skin);
+		table.setFillParent(true);
+
+		// creating heading
+		Label heading = new Label("MISSION COMPLETE", skin, "big");
+		heading.setFontScale(1.5f);
+		
+		//level statistics
+		Label lineOne = new Label("Accuracy: " + 
+		(vrg.gameScreen.term.numOfCharactersTypedCorrectly/vrg.gameScreen.term.numOfCharactersTypedTotal) + "%", skin, "big");
+		Label lineTwo = new Label("Points: " + 
+		(vrg.gameScreen.term.numOfCharactersTypedCorrectly - vrg.gameScreen.term.numOfCharactersTypedIncorrectly), skin, "big");
+		Label lineThree = new Label("MISSION COMPLETE", skin, "big");
+
+		// creating buttons
+		TextButton buttonPlay = new TextButton("CONTINUE", skin, "default");
+		buttonPlay.addListener(new ClickListener() 
+		{
+
+			@Override
+			public void clicked(InputEvent event, float x, float y) 
+			{
+				vrg.currentLevel += 1;
+				vrg.gameScreen.nextLevel();
+				((Game) Gdx.app.getApplicationListener()).setScreen(new GameScreen(vrg));
+				dispose();
+			}
+
+		});
+		buttonPlay.pad(15);
+
+
+		// putting stuff together
+		table.add(heading).spaceBottom(100).row();
+		table.add(lineOne).spaceBottom(100f).row();
+		table.add(lineTwo).spaceBottom(100f).row();
+		table.add(lineThree).spaceBottom(100f).row();
+		table.add(buttonPlay).spaceBottom(15).row();
+
+		stage.addActor(table);
+
+		// creating animations
+		tweenManager = new TweenManager();
+		Tween.registerAccessor(Actor.class, new ActorAccessor());
+
+		// heading color animation
+		Timeline.createSequence().beginSequence()
+		.push(Tween.to(heading, ActorAccessor.RGB, .5f).target(0, 0, 1))
+		.push(Tween.to(heading, ActorAccessor.RGB, .5f).target(0, 1, 0))
+		.push(Tween.to(heading, ActorAccessor.RGB, .5f).target(1, 0, 0))
+		.end().repeat(Tween.INFINITY, 0).start(tweenManager);
+
+		// heading and buttons fade-in
+		Timeline.createSequence().beginSequence()
+		.push(Tween.set(buttonPlay, ActorAccessor.ALPHA).target(0))
+		.push(Tween.from(heading, ActorAccessor.ALPHA, .25f).target(0).ease(TweenEquations.easeInBack))
+		.push(Tween.to(buttonPlay, ActorAccessor.ALPHA, .25f).target(1))
+		.end().start(tweenManager);
+
+		// table fade-in
+		Tween.from(table, ActorAccessor.ALPHA, .75f).target(0).start(tweenManager);
+		Tween.from(table, ActorAccessor.Y, .75f).target(Gdx.graphics.getHeight() / 8).start(tweenManager);
+
+		tweenManager.update(Gdx.graphics.getDeltaTime());
+
+		//background
+		backgroundRegion = vrg.atlas.findRegion("background_ALPHA");
+		
+		//particle effects
+		effect = new ParticleEffect();
+		effect.load(Gdx.files.internal("effects/spark.p"), Gdx.files.internal("effects"));
+		effect.setPosition(Gdx.graphics.getWidth()/2, Gdx.graphics.getHeight()/2);
+		effect.start();
 		
 	}
 
@@ -101,8 +220,11 @@ public class TransitionScreen implements Screen
 	}
 
 	@Override
-	public void dispose() {
-		// TODO Auto-generated method stub
+	public void dispose() 
+	{
+		stage.dispose();
+		skin.dispose();
+		
 		
 	}
 

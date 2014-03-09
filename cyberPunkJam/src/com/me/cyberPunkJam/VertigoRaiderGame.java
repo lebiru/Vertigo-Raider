@@ -16,6 +16,7 @@ public class VertigoRaiderGame extends Game {
 	private Texture texture;
 	private Sprite sprite;
 	public TextureAtlas atlas;
+	public int currentLevel = 0;
 	
 	BitmapFont font;
 	public com.me.cyberPunkJam.MainMenuScreen mainMenuScreen;

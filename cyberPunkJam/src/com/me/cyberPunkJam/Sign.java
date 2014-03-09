@@ -24,7 +24,7 @@ public class Sign
 
 	public Sign(TextureAtlas atlas, float x, float y) 
 	{
-		int signSwitch = ran.nextInt(3);
+		int signSwitch = ran.nextInt(4);
 		TextureRegion[][] signTR;
 		switch(signSwitch) {
 		case 0: signRegion = atlas.findRegion("sign01_ALPHA");
@@ -33,12 +33,14 @@ public class Sign
 	    		break;
 		case 2: signRegion = atlas.findRegion("sign03_ALPHA");
 	    		break;
+		case 3: signRegion = atlas.findRegion("sign04_ALPHA");
+		break;
 		}
 		signTR = signRegion.split(200, 100);
 		signAnimation = new Animation(betweenTwo(0.5f, 1.0f), signTR[0]);
 		signAnimation.setPlayMode(Animation.LOOP);
 		signAnimatedSprite = new AnimatedSprite(signAnimation);
-		signAnimatedSprite.setRotation(betweenTwo(0, 10f));
+		signAnimatedSprite.setRotation(betweenTwo(-10f, 10f));
 		this.x = x;
 		this.y = y;
 	}

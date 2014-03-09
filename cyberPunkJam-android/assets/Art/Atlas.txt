@@ -4,140 +4,161 @@ filter: Linear,Linear
 repeat: none
 background_ALPHA
   rotate: false
-  xy: 0, 150
+  xy: 2500, 0
   size: 1366, 786
   orig: 1366, 786
   offset: 0, 0
   index: 1
-continue
+sign04_ALPHA
   rotate: false
-  xy: 1600, 1386
-  size: 200, 100
-  orig: 200, 100
+  xy: 5948, 1136
+  size: 1800, 100
+  orig: 1800, 100
   offset: 0, 0
-  index: -1
+  index: 1
 citizen04_ALPHA
   rotate: false
-  xy: 0, 1386
+  xy: 1600, 786
   size: 1600, 150
   orig: 1600, 150
   offset: 0, 0
   index: 1
 sequencerBackground
   rotate: false
-  xy: 248, 1686
+  xy: 1648, 1136
   size: 700, 500
   orig: 700, 500
   offset: 0, 0
   index: -1
-agent
+flyingCar01_ALPHA
   rotate: false
-  xy: 0, 0
-  size: 300, 150
-  orig: 300, 150
+  xy: 0, 936
+  size: 3000, 100
+  orig: 3000, 100
   offset: 0, 0
-  index: -1
+  index: 1
 hero_ALPHA
   rotate: false
-  xy: 0, 1536
+  xy: 0, 1136
   size: 1600, 150
   orig: 1600, 150
   offset: 0, 0
   index: 1
 citizen03_ALPHA
   rotate: false
-  xy: 0, 1236
+  xy: 0, 786
   size: 1600, 150
   orig: 1600, 150
   offset: 0, 0
   index: 1
 citizen02_ALPHA
   rotate: false
-  xy: 0, 1086
+  xy: 5866, 0
   size: 1600, 150
   orig: 1600, 150
   offset: 0, 0
   index: 1
 agent_ALPHA
   rotate: false
-  xy: 300, 0
+  xy: 0, 0
   size: 1600, 150
   orig: 1600, 150
   offset: 0, 0
   index: 1
 sign01_ALPHA
   rotate: false
-  xy: 948, 1686
+  xy: 2348, 1136
   size: 400, 100
   orig: 400, 100
   offset: 0, 0
   index: 1
-next
-  rotate: false
-  xy: 1600, 1536
-  size: 200, 100
-  orig: 200, 100
-  offset: 0, 0
-  index: -1
 ropeKnot_ALPHA
   rotate: false
-  xy: 200, 1686
+  xy: 1600, 1136
   size: 24, 24
   orig: 24, 24
   offset: 0, 0
   index: 1
+flyingCar02_ALPHA
+  rotate: false
+  xy: 0, 1036
+  size: 6600, 100
+  orig: 6600, 100
+  offset: 0, 0
+  index: 1
 building_ALPHA
   rotate: false
-  xy: 1366, 150
+  xy: 3866, 0
   size: 400, 600
   orig: 400, 600
   offset: 0, 0
   index: 1
 citizen01_ALPHA
   rotate: false
-  xy: 0, 936
+  xy: 4266, 0
   size: 1600, 150
   orig: 1600, 150
   offset: 0, 0
   index: 1
+antena01_ALPHA
+  rotate: false
+  xy: 1600, 0
+  size: 300, 200
+  orig: 300, 200
+  offset: 0, 0
+  index: 1
+cloud02_ALPHA
+  rotate: false
+  xy: 5107, 786
+  size: 307, 122
+  orig: 307, 122
+  offset: 0, 0
+  index: 1
 sign02_ALPHA
   rotate: false
-  xy: 0, 2186
+  xy: 2748, 1136
   size: 1800, 100
   orig: 1800, 100
   offset: 0, 0
   index: 1
-quit
+citizen05_ALPHA
   rotate: false
-  xy: 0, 1686
-  size: 200, 100
-  orig: 200, 100
+  xy: 3200, 786
+  size: 1600, 150
+  orig: 1600, 150
   offset: 0, 0
-  index: -1
-play
+  index: 1
+cloud01_ALPHA
   rotate: false
-  xy: 1800, 1536
-  size: 200, 100
-  orig: 200, 100
+  xy: 4800, 786
+  size: 307, 122
+  orig: 307, 122
   offset: 0, 0
-  index: -1
+  index: 1
 sign03_ALPHA
   rotate: false
-  xy: 0, 2286
+  xy: 4548, 1136
   size: 1400, 100
   orig: 1400, 100
   offset: 0, 0
   index: 1
-credits
+antena02_ALPHA
   rotate: false
-  xy: 1800, 1386
-  size: 200, 100
-  orig: 200, 100
+  xy: 1900, 0
+  size: 300, 200
+  orig: 300, 200
   offset: 0, 0
-  index: -1
+  index: 1
+antena03_ALPHA
+  rotate: false
+  xy: 2200, 0
+  size: 300, 200
+  orig: 300, 200
+  offset: 0, 0
+  index: 1
 rope_ALPHA
   rotate: false
-  xy: 224, 1686
+  xy: 1624, 1136
   size: 24, 24
   orig: 24, 24
   offset: 0, 0

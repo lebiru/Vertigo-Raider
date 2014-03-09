@@ -125,33 +125,35 @@ public class MainMenuScreen implements Screen
 		heading.setFontScale(2);
 
 		// creating buttons
-		TextButton buttonPlay = new TextButton("PLAY", skin, "default");
+		TextButton buttonPlay = new TextButton("LET'S DO THIS", skin, "default");
 		buttonPlay.addListener(new ClickListener() 
 		{
 
 			@Override
 			public void clicked(InputEvent event, float x, float y) 
 			{
-				((Game) Gdx.app.getApplicationListener()).setScreen(new GameScreen(vrg));
+				dispose();
+				((Game) Gdx.app.getApplicationListener()).setScreen(new Intro(vrg));
 			}
 
 		});
 		buttonPlay.pad(15);
 
-		TextButton buttonCredits = new TextButton("CREDITS", skin, "default");
+		TextButton buttonCredits = new TextButton("WHO MADE THIS?", skin, "default");
 		buttonCredits.addListener(new ClickListener() 
 		{
 
 			@Override
 			public void clicked(InputEvent event, float x, float y) 
 			{
+				dispose();
 				((Game) Gdx.app.getApplicationListener()).setScreen(new CreditScreen(vrg));
 			}
 
 		});
 		buttonCredits.pad(15);
 
-		TextButton buttonExit = new TextButton("EXIT", skin, "default");
+		TextButton buttonExit = new TextButton("THE CYBER LIFE IS NOT FOR ME", skin, "default");
 		buttonExit.addListener(new ClickListener() 
 		{
 
@@ -163,7 +165,9 @@ public class MainMenuScreen implements Screen
 						.setCallback(new TweenCallback() {
 
 							@Override
-							public void onEvent(int type, BaseTween<?> source) {
+							public void onEvent(int type, BaseTween<?> source) 
+							{
+								dispose();
 								Gdx.app.exit();
 							}
 						}))
@@ -240,8 +244,10 @@ public class MainMenuScreen implements Screen
 	}
 
 	@Override
-	public void dispose() {
-		// TODO Auto-generated method stub
+	public void dispose() 
+	{
+		stage.dispose();
+		skin.dispose();
 
 	}
 
