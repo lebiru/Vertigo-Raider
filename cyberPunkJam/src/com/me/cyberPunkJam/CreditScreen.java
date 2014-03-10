@@ -13,6 +13,7 @@ import aurelienribon.tweenengine.TweenManager;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -25,11 +26,13 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.utils.Scaling;
 
 
 /**
@@ -54,7 +57,7 @@ public class CreditScreen implements Screen
 	private Skin skin;
 	private Table table;
 	private TweenManager tweenManager;
-	
+
 	//particle effects
 	private ParticleEffect effect;
 
@@ -80,33 +83,38 @@ public class CreditScreen implements Screen
 		Gdx.gl.glClearColor(0, 0, 0, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+		if(Gdx.input.isKeyPressed(Keys.ESCAPE))
+		{
+			vrg.setScreen(new MainMenuScreen(vrg));
+		}
+
 		batch.begin();
 		batch.draw(backgroundRegion, backgroundRegionX, backgroundRegionY);
-		
-	
+
 		effect.draw(batch, delta);
-		
+
 		batch.end();
-		
+
 		stage.act(delta);
 		stage.draw();
 
 		tweenManager.update(delta);
-		
+
 		if(effect.isComplete())
 		{
 			effect.reset();
 		}
 
-		
-		
+
+
 	}
 
 	@Override
 	public void resize(int width, int height) 
 	{
-		// TODO Auto-generated method stub
-
+		stage.setViewport(width, height, true);
+		table.invalidateHierarchy();
+		vrg.resize(width, height);
 	}
 
 	@Override
@@ -122,14 +130,13 @@ public class CreditScreen implements Screen
 		table.setFillParent(true);
 
 		// creating heading
-		Label heading = new Label("Vertigo Raiders", skin, "big");
-		
+		// creating heading
+		Image heading = new Image(vrg.atlas.findRegion("logoWhite_BETA"));
+
 		Label lineOne = new Label("Bilal | Programmer | @ninjabit6", skin, "default");
-		Label lineTwo = new Label("Nico | Art |  www.nicotraut.com", skin, "default");
+		Label lineTwo = new Label("Nico | Art |  www.nicotraut.com | @nicotrautdesign", skin, "default");
 		Label lineThree = new Label("Theodore | Music | www.soundcloud.com/ttvgm", skin, "default");
 		Label lineFour = new Label("itch.io #CyberPunkJam 2014", skin, "default");
-		
-		heading.setFontScale(2);
 
 		// creating buttons
 		TextButton buttonMain = new TextButton("Back", skin, "big");
@@ -146,14 +153,13 @@ public class CreditScreen implements Screen
 		});
 		buttonMain.pad(15);
 
-
 		// putting stuff together
-		table.add(heading).spaceBottom(100).row();
-		table.add(lineOne).spaceBottom(20).row();
-		table.add(lineTwo).spaceBottom(20).row();
-		table.add(lineThree).spaceBottom(20).row();
-		table.add(lineFour).spaceTop(30f).row();
-		table.add(buttonMain).spaceTop(30f).row();
+		table.add(heading).spaceBottom(20f).row();
+		table.add(lineOne).spaceBottom(20f).row();
+		table.add(lineTwo).spaceBottom(20f).row();
+		table.add(lineThree).spaceBottom(100f).row();
+		table.add(lineFour).spaceBottom(20f).row();
+		table.add(buttonMain).spaceBottom(20f).row();
 
 
 		stage.addActor(table);
@@ -172,15 +178,15 @@ public class CreditScreen implements Screen
 		.push(Tween.to(heading, ActorAccessor.RGB, .5f).target(1, 0, 1))
 		.push(Tween.to(heading, ActorAccessor.RGB, .5f).target(1, 1, 1))
 		.end().repeat(Tween.INFINITY, 0).start(tweenManager);
-		
+
 		Timeline.createSequence().beginSequence()
 		.push(Tween.to(lineOne, ActorAccessor.Y, 1.0f).target(340f).ease(TweenEquations.easeInBounce))
 		.end().start(tweenManager);
-		
+
 		Timeline.createSequence().beginSequence()
 		.push(Tween.to(lineTwo, ActorAccessor.Y, 1.0f).target(300f).ease(TweenEquations.easeInBounce))
 		.end().start(tweenManager);
-		
+
 		Timeline.createSequence().beginSequence()
 		.push(Tween.to(lineThree, ActorAccessor.Y, 1.0f).target(260f).ease(TweenEquations.easeInBounce))
 		.end().start(tweenManager);
@@ -203,7 +209,7 @@ public class CreditScreen implements Screen
 
 		//background
 		backgroundRegion = vrg.atlas.findRegion("background_ALPHA");
-		
+
 		//particle effects
 		effect = new ParticleEffect();
 		effect.load(Gdx.files.internal("effects/spark.p"), Gdx.files.internal("effects"));

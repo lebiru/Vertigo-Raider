@@ -31,16 +31,16 @@ public class Car
 		switch(carSwitch) {
 		case 0: carRegion = atlas.findRegion("flyingCar01_ALPHA");
 				carTR = carRegion.split(300, 100);
-				carAnimation = new Animation(1f, carTR[0]);
+				carAnimation = new Animation(0.1f, carTR[0]);
 			    break;
 		case 1: carRegion = atlas.findRegion("flyingCar02_ALPHA");
 				carTR = carRegion.split(300, 100);
-				carAnimation = new Animation(1f, carTR[0]);
+				carAnimation = new Animation(0.1f, carTR[0]);
 	    		break;
 
 		}
 		
-		speed = betweenTwo(10f, 20f);
+		speed = betweenTwo(2f, 5f);
 		carAnimation.setPlayMode(Animation.LOOP_PINGPONG);
 		carAnimatedSprite = new AnimatedSprite(carAnimation);
 		carAnimatedSprite.setScale(betweenTwo(0.2f, 0.7f));

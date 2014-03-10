@@ -35,16 +35,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 
 public class TransitionScreen implements Screen 
-{
-//	SpriteBatch batch;
-//	VertigoRaiderGame vrg;
-//	private OrthographicCamera camera;
-//	private BitmapFont font;
-//	private Random ran = new Random();
-//	private Vector2 mousePos;
-//	
-//	Button nextMissionButton;
-	
+{	
 	SpriteBatch batch;
 	VertigoRaiderGame vrg;
 	private OrthographicCamera camera;
@@ -111,9 +102,9 @@ public class TransitionScreen implements Screen
 	@Override
 	public void resize(int width, int height) 
 	{
-		stage.setViewport(width, height, false);
+		stage.setViewport(width, height, true);
 		table.invalidateHierarchy();
-		
+		vrg.resize(width, height);
 	}
 
 	@Override
@@ -132,12 +123,30 @@ public class TransitionScreen implements Screen
 		Label heading = new Label("MISSION COMPLETE", skin, "big");
 		heading.setFontScale(1.5f);
 		
+		float accuracy = vrg.accuracy * 100;
+		int points = vrg.points;
+		
 		//level statistics
-		Label lineOne = new Label("Accuracy: " + 
-		(vrg.gameScreen.term.numOfCharactersTypedCorrectly/vrg.gameScreen.term.numOfCharactersTypedTotal) + "%", skin, "big");
-		Label lineTwo = new Label("Points: " + 
-		(vrg.gameScreen.term.numOfCharactersTypedCorrectly - vrg.gameScreen.term.numOfCharactersTypedIncorrectly), skin, "big");
-		Label lineThree = new Label("MISSION COMPLETE", skin, "big");
+		Label lineOne = new Label("ACCURACY: " + accuracy + "%", skin, "big");
+		
+		Label lineTwo = new Label("POINTS: " + points, skin, "big");
+		
+		Label lineThree;
+		
+		if(accuracy < 50)
+		{
+			lineThree = new Label("RANK: Script Kiddy", skin, "big");
+		}
+		else if(accuracy < 80)
+		{
+			lineThree = new Label("RANK: Cyber Cowboy", skin, "big");
+		}
+		else
+		{
+			lineThree = new Label("RANK: Legendary Hacker", skin, "big");
+		}
+		
+		
 
 		// creating buttons
 		TextButton buttonPlay = new TextButton("CONTINUE", skin, "default");

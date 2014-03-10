@@ -1,6 +1,8 @@
 package com.me.cyberPunkJam;
 
 import com.badlogic.gdx.Game;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -17,14 +19,18 @@ public class VertigoRaiderGame extends Game {
 	private Sprite sprite;
 	public TextureAtlas atlas;
 	public int currentLevel = 0;
+	public int points = 0;
+	public float accuracy = 0;
+	
+	public Music currentMusic;
 	
 	BitmapFont font;
 	public com.me.cyberPunkJam.MainMenuScreen mainMenuScreen;
 	public com.me.cyberPunkJam.GameScreen gameScreen;
 	public com.me.cyberPunkJam.GameOverScreen gameOverScreen;
 	public com.me.cyberPunkJam.TransitionScreen transitionScreen;
-	static final int VIRTUAL_WIDTH = 1366;
-	static final int VIRTUAL_HEIGHT = 786;
+	static final int VIRTUAL_WIDTH = 1366; //1366
+	static final int VIRTUAL_HEIGHT = 786; //786
 	private static final float ASPECT_RATIO = (float)VIRTUAL_WIDTH/(float)VIRTUAL_HEIGHT;
 	
 	public static final String TITLE = "Vertigo Raider", VERSION = "Alpha";
@@ -45,6 +51,10 @@ public class VertigoRaiderGame extends Game {
 		gameOverScreen = new GameOverScreen(this);
 		transitionScreen = new TransitionScreen(this);
 		
+		currentMusic = Gdx.audio.newMusic(Gdx.files.internal("Sound/Music/TitleTheme_ALPHA_00.ogg"));
+//		currentMusic.setLooping(true);
+//		currentMusic.play();
+		
 		this.setScreen(mainMenuScreen);
 		
 		
@@ -55,6 +65,7 @@ public class VertigoRaiderGame extends Game {
 	public void dispose() {
 		batch.dispose();
 		texture.dispose();
+		currentMusic.dispose();
 	}
 
 	public void render() 

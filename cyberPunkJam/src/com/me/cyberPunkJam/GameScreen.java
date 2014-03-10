@@ -32,7 +32,7 @@ public class GameScreen implements Screen, InputProcessor
 	private Sound goodType;
 	private Sound newLineSound;
 
-	private Music gameTheme;
+	//private Music gameTheme;
 	private Music alarmSound;
 
 	//TextureAtlas atlas;
@@ -91,7 +91,9 @@ public class GameScreen implements Screen, InputProcessor
 		this.batch = vgr.batch;
 		this.camera = new OrthographicCamera();
 		Gdx.input.setInputProcessor(this);
-
+		
+		//vgr.currentMusic.stop();
+		
 
 		vgr.font.setColor(Color.GREEN);
 		vgr.font.setScale(1.0f);
@@ -103,8 +105,8 @@ public class GameScreen implements Screen, InputProcessor
 
 
 		//LOADING MUSIC
-		gameTheme = Gdx.audio.newMusic(Gdx.files.internal("Sound/Music/gameTheme.ogg"));
-		gameTheme.setLooping(true);
+//		gameTheme = Gdx.audio.newMusic(Gdx.files.internal("Sound/Music/TechnoTheme_ALPHA_01.ogg"));
+//		gameTheme.setLooping(true);
 		alarmSound = Gdx.audio.newMusic(Gdx.files.internal("Sound/FX/alarm.wav"));
 		alarmSound.setLooping(true);
 
@@ -124,8 +126,8 @@ public class GameScreen implements Screen, InputProcessor
 
 		//Sequencer background
 		sequencerBackground = vgr.atlas.findRegion("sequencerBackground");
-		sequencerBackgroundX = 200;
-		sequencerBackgroundY = 600;
+		sequencerBackgroundX = vgr.VIRTUAL_WIDTH/4;
+		sequencerBackgroundY = vgr.VIRTUAL_HEIGHT/4;
 
 		/**
 		 * Corner points are the starting and ending points for the hero. 
@@ -263,6 +265,8 @@ public class GameScreen implements Screen, InputProcessor
 		//UPDATE LOCATIONS
 		hero.heroAnimatedSprite.setX(hero.heroX);
 		hero.heroAnimatedSprite.setY(hero.heroY);
+		sequencerBackgroundX = vgr.VIRTUAL_WIDTH/4;
+		sequencerBackgroundY = vgr.VIRTUAL_HEIGHT/4;
 
 
 		for(Sign s : signsLeft)
@@ -283,12 +287,13 @@ public class GameScreen implements Screen, InputProcessor
 			a.antennaAnimatedSprite.setPosition(a.x, a.y);
 		}
 
+		
 		//INPUT LOGIC
-
-
 		batch.begin();
 
+		//resize background
 		batch.draw(backgroundRegion, backgroundRegionX, backgroundRegionY);
+		
 		//draw rope
 		batch.draw(ropeRegion, startCorner.x, startCorner.y  - 25, endCorner.x - startCorner.x, 25);
 
@@ -360,26 +365,22 @@ public class GameScreen implements Screen, InputProcessor
 		vgr.font.draw(batch, "PROGRESS: " + term.percentageComplete + "%", 50, 700);
 
 		//Percentage close to losing to the Agent AI
-		vgr.font.setColor(1f, 1f - (aai.agentAIpercentage/100f), 0f, 1f);
-		vgr.font.draw(batch, "ALERT: " + aai.agentAIpercentage + "%", 50, 740);
+		vgr.font.setColor((aai.agentAIpercentage/100f), 1f - (aai.agentAIpercentage/100f), 0f, 1f);
+		vgr.font.draw(batch, "ALERT: " + Math.round(aai.agentAIpercentage)+ "%", 50, 740);
 		vgr.font.setColor(Color.WHITE);
 
 		//timer
-		vgr.font.draw(batch, "TIMER: " + String.valueOf(term.timeLeft) + " secs", 50, 660);
-
-//		vgr.font.draw(batch, "right: " + term.numOfCharactersTypedCorrectly +
-//				" wrong: " + term.numOfCharactersTypedIncorrectly +
-//				" percent: " + (term.numOfCharactersTypedTotal / term.numOfCharactersTypedCorrectly) +
-//				" poitns: " + (term.numOfCharactersTypedCorrectly - term.numOfCharactersTypedIncorrectly), 50, 630);
+		vgr.font.draw(batch, "TIMER: " + String.valueOf(Math.round(term.timeLeft))+ " secs", 50, 660);
 
 		//sequencer
 		if(term.isSequenceMode == true)
 		{
-			batch.draw(sequencerBackground, 300, 200);
+			batch.draw(sequencerBackground, sequencerBackgroundX, sequencerBackgroundY, 
+					vgr.VIRTUAL_WIDTH / 1.5f, vgr.VIRTUAL_HEIGHT / 1.5f);
 
 			vgr.font.setScale(4.0f);
 			vgr.font.setColor(Color.rgba8888(0.9f, 0.9f,  ran.nextFloat(), 1));
-			vgr.font.draw(batch, "SEQUENCER", vgr.VIRTUAL_WIDTH/2 - 200, 600);
+			vgr.font.draw(batch, "RANDOM HACK BELOW!", vgr.VIRTUAL_WIDTH/2 - 200, 600);
 
 			vgr.font.setScale(6.0f);
 			//required typing
@@ -404,37 +405,35 @@ public class GameScreen implements Screen, InputProcessor
 
 	private void checkGameOverCondition() 
 	{
-		if(aai.agentAIpercentage >= 100)
+		if(aai.agentAIpercentage >= 100 || term.timeLeft < 0)
 		{
+			vgr.accuracy = 0;
+			vgr.points = 0;
+			vgr.setScreen(new GameOverScreen(vgr));
 			this.dispose();
-			vgr.setScreen(vgr.gameOverScreen);
-
-
 		}
-
-		else if(term.timeLeft < 0)
-		{
-			vgr.setScreen(vgr.gameOverScreen);
-			this.hide();
-		}
-
 	}
 
 	private void checkWinCondition()
 	{
 		if(term.percentageComplete >= 100)
 		{
-			this.dispose();
+			
 			if(vgr.currentLevel >= term.levels.size - 1)
 			{
+				vgr.accuracy = 0;
+				vgr.points = 0;
 				vgr.setScreen(new WinScreen(vgr));
 			}
+			
 			//if not, just continue as usual
 			else
 			{
-				vgr.setScreen(vgr.transitionScreen);
+				vgr.accuracy = term.accuracy;
+				vgr.points = term.points;
+				vgr.setScreen(new TransitionScreen(vgr));
 			}
-			
+			this.dispose();
 
 		}
 	}
@@ -449,7 +448,10 @@ public class GameScreen implements Screen, InputProcessor
 	@Override
 	public void show() 
 	{
-		gameTheme.play();
+		vgr.currentMusic.stop();
+		vgr.currentMusic = Gdx.audio.newMusic(Gdx.files.internal("Sound/Music/TechnoTheme_ALPHA_01.ogg"));
+		vgr.currentMusic.setLooping(true);
+		vgr.currentMusic.play();
 		term.startTimer = System.nanoTime();
 
 	}
@@ -457,7 +459,7 @@ public class GameScreen implements Screen, InputProcessor
 	@Override
 	public void hide() 
 	{
-		gameTheme.stop();
+		//gameTheme.stop();
 
 	}
 
@@ -471,14 +473,14 @@ public class GameScreen implements Screen, InputProcessor
 	@Override
 	public void resume() 
 	{
-		gameTheme.play();
+		//gameTheme.play();
 
 	}
 
 	@Override
 	public void dispose() 
 	{
-		gameTheme.dispose();
+		//gameTheme.dispose();
 
 		//disposing sound
 		goodType.dispose();
@@ -513,10 +515,6 @@ public class GameScreen implements Screen, InputProcessor
 			if(term.isSequenceMode == false)
 			{
 				//If player typed the correct letter
-				System.out.println(term.currentCharacter);
-				System.out.println(term.currentTypedCharacter);
-				System.out.println(character);
-				System.out.println(term.levels.get(currentLevel));
 				if(term.currentTypedCharacter == term.currentCharacter)
 				{
 					goodType.play(0.3f);

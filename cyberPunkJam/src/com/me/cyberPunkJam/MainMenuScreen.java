@@ -12,6 +12,7 @@ import aurelienribon.tweenengine.TweenManager;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Music;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -24,6 +25,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -44,6 +46,8 @@ public class MainMenuScreen implements Screen
 	private BitmapFont font;
 	private Random ran = new Random();
 	private Vector2 mousePos;
+	
+//	Music titleTheme;
 
 	TextureRegion backgroundRegion;
 	float backgroundRegionX = 0;
@@ -55,7 +59,7 @@ public class MainMenuScreen implements Screen
 	private TweenManager tweenManager;
 	
 	//particle effects
-	private ParticleEffect effect;
+//	private ParticleEffect effect;
 
 	public MainMenuScreen(final VertigoRaiderGame vrg) 
 	{
@@ -70,6 +74,7 @@ public class MainMenuScreen implements Screen
 
 		Texture.setEnforcePotImages(false);
 
+
 	}
 
 	@Override
@@ -80,10 +85,8 @@ public class MainMenuScreen implements Screen
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
 		batch.begin();
-		batch.draw(backgroundRegion, backgroundRegionX, backgroundRegionY);
 		
-	
-		effect.draw(batch, delta);
+		batch.draw(backgroundRegion, backgroundRegionX, backgroundRegionY);
 		
 		batch.end();
 		
@@ -91,26 +94,29 @@ public class MainMenuScreen implements Screen
 		stage.draw();
 
 		tweenManager.update(delta);
-		
-		if(effect.isComplete())
-		{
-			effect.reset();
-		}
 
-		
-		
 	}
 
 	@Override
 	public void resize(int width, int height) 
 	{
-		// TODO Auto-generated method stub
-
+		stage.setViewport(width, height, true);
+		table.invalidateHierarchy();
+		vrg.resize(width, height);
+	
 	}
 
 	@Override
 	public void show() 
 	{
+		if(vrg.currentMusic.isPlaying())
+		{
+			vrg.currentMusic.stop();
+		}
+		vrg.currentMusic = Gdx.audio.newMusic(Gdx.files.internal("Sound/Music/TitleTheme_ALPHA_00.ogg"));
+		vrg.currentMusic.setLooping(true);
+		vrg.currentMusic.play();
+		
 		stage = new Stage();
 
 		Gdx.input.setInputProcessor(stage);
@@ -119,10 +125,9 @@ public class MainMenuScreen implements Screen
 
 		table = new Table(skin);
 		table.setFillParent(true);
-
+	
 		// creating heading
-		Label heading = new Label(VertigoRaiderGame.TITLE, skin, "big");
-		heading.setFontScale(2);
+		Image heading = new Image(vrg.atlas.findRegion("logoWhite_BETA"));
 
 		// creating buttons
 		TextButton buttonPlay = new TextButton("LET'S DO THIS", skin, "default");
@@ -215,13 +220,8 @@ public class MainMenuScreen implements Screen
 		tweenManager.update(Gdx.graphics.getDeltaTime());
 
 		//background
-		backgroundRegion = vrg.atlas.findRegion("background_ALPHA");
-		
-		//particle effects
-		effect = new ParticleEffect();
-		effect.load(Gdx.files.internal("effects/spark.p"), Gdx.files.internal("effects"));
-		effect.setPosition(Gdx.graphics.getWidth()/2, Gdx.graphics.getHeight()/2);
-		effect.start();
+		backgroundRegion = vrg.atlas.findRegion("mainMenuBackgroundNoLogo_BETA");
+
 	}
 
 	@Override
@@ -248,7 +248,6 @@ public class MainMenuScreen implements Screen
 	{
 		stage.dispose();
 		skin.dispose();
-
 	}
 
 }

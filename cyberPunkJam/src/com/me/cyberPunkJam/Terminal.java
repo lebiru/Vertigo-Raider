@@ -18,7 +18,6 @@ public class Terminal
 	Random ran = new Random();
 	int currentLevel = 0;
 
-
 	double timer = 0;
 	long startTimer = 0;
 	double timeLimit = 0;
@@ -50,6 +49,8 @@ public class Terminal
 	Array<URL> levels = new Array<URL>();
 
 	//Sequencers
+	float sequencerRandomStart = 20f;
+	float sequencerRandomEnd = 50f;
 	long sequencerCountdown = 0;
 	long sequencerCountdownLimit = 0;
 	long sequencerTimer;
@@ -75,6 +76,8 @@ public class Terminal
 	float pixelsHeroNeedsToTravel = 200; //this should be the distance between building corners
 	float pixelsPerMove = 0; //every time user types a correct word, player must move this amount of pixels.
 
+	float accuracy = numOfCharactersTypedTotal/numOfCharactersTypedCorrectly;
+	int points = (int) (numOfCharactersTypedCorrectly - numOfCharactersTypedIncorrectly);
 
 	////////////////////////////////////////////////////
 
@@ -85,7 +88,6 @@ public class Terminal
 	public Terminal(int currentLevel)
 	{
 		this.currentLevel = currentLevel;
-		System.out.println("terminal constructor run, LEVEL: " + currentLevel);
 		try {
 			makeURL();
 		} catch (MalformedURLException e) {
@@ -155,7 +157,7 @@ public class Terminal
 		}
 
 		timeLimit = count;
-		sequencerCountdownLimit = (long) betweenTwo(20f, 50f);
+		sequencerCountdownLimit = (long) betweenTwo(sequencerRandomStart, sequencerRandomEnd);
 		sequencerCountdown = sequencerCountdownLimit;
 		lastCompletedSequence = System.nanoTime();
 
@@ -325,6 +327,9 @@ public class Terminal
 		{
 			isSequenceMode = true;
 		}
+		
+		accuracy = numOfCharactersTypedTotal/numOfCharactersTypedCorrectly;
+		points = (int) (numOfCharactersTypedCorrectly - numOfCharactersTypedIncorrectly);
 	}
 	
 	/**
@@ -364,7 +369,7 @@ public class Terminal
 	public void generateSequence()
 	{
 		sequence = possibleSequences[ran.nextInt(possibleSequences.length)];
-		sequencerCountdownLimit = (long) betweenTwo(20f, 50f);
+		sequencerCountdownLimit = (long) betweenTwo(sequencerRandomStart, sequencerRandomEnd);
 		sequencerCountdown = sequencerCountdownLimit;
 		sequencerTimer = Math.round((double)(System.nanoTime() - lastCompletedSequence) / 100000000);
 		lastCompletedSequence = System.nanoTime();
@@ -393,9 +398,9 @@ public class Terminal
 //		levels.add(new URL("https://gist.githubusercontent.com/zen6/9360518/raw/30d74d258442c7c65512eafab474568dd706c430/short"));
 //		levels.add(new URL("https://gist.githubusercontent.com/zen6/9360518/raw/30d74d258442c7c65512eafab474568dd706c430/short"));
 		
-		levels.add(new URL("https://gist.githubusercontent.com/zen6/9299803/raw/aee25f078f43249043771df64ae0dffc833c3f1d/iloveyou"));
-		levels.add(new URL("https://gist.githubusercontent.com/zen6/9300956/raw/d16f38add4d392fa15fdd6dddf235457ea62a264/Melissa"));
-		levels.add(new URL("https://gist.githubusercontent.com/zen6/9300973/raw/1e36e23efbbc198543a5644c15c0335cfa676cbc/Zeus"));
+		levels.add(new URL("https://gist.githubusercontent.com/zen6/9299803/raw/72587dc50ed260c827fdbcb1052fc15cb34de882/iloveyou"));
+		levels.add(new URL("https://gist.githubusercontent.com/zen6/9300956/raw/4136184045ad9e9793929940eb0a906b9ecd77c1/Melissa"));
+		levels.add(new URL("https://gist.githubusercontent.com/zen6/9300973/raw/e6eec7a97faef6bac91f25f6b8a8536e28ca6777/Zeus"));
 
 	}
 }

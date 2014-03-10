@@ -27,7 +27,7 @@ public class Antenna
 		int signSwitch = ran.nextInt(3);
 		TextureRegion[][] signTR;
 		switch(signSwitch) {
-		case 0: antennaRegion = atlas.findRegion("antena01_ALPHA");
+		case 0: antennaRegion = atlas.findRegion("antena01_BETA");
 			    break;
 		case 1: antennaRegion = atlas.findRegion("antena02_ALPHA");
 	    		break;
@@ -35,7 +35,7 @@ public class Antenna
 	    		break;
 
 		}
-		signTR = antennaRegion.split(300, 200);
+		signTR = antennaRegion.split(100, 200);
 		antennaAnimation = new Animation(1f, signTR[0]);
 		antennaAnimation.setPlayMode(Animation.LOOP);
 		antennaAnimatedSprite = new AnimatedSprite(antennaAnimation);

@@ -95,14 +95,23 @@ public class GameOverScreen implements Screen
 	}
 
 	@Override
-	public void resize(int width, int height) {
-		// TODO Auto-generated method stub
-
+	public void resize(int width, int height) 
+	{
+		stage.setViewport(width, height, true);
+		table.invalidateHierarchy();
+		vrg.resize(width, height);
 	}
 
 	@Override
 	public void show() 
 	{
+		
+		//MUSIC
+		vrg.currentMusic.stop();
+		vrg.currentMusic = Gdx.audio.newMusic(Gdx.files.internal("Sound/Music/GameOverTheme_ALPHA_00.ogg"));
+		vrg.currentMusic.setLooping(true);
+		vrg.currentMusic.play();
+		
 		stage = new Stage();
 
 		Gdx.input.setInputProcessor(stage);
@@ -115,6 +124,8 @@ public class GameOverScreen implements Screen
 		// creating heading
 		Label heading = new Label("GAME OVER", skin, "big");
 		heading.setFontScale(1.5f);
+		
+		Label lineOne = new Label("You couldn't hack fast enough...", skin, "default");
 
 		// creating buttons
 		TextButton buttonPlay = new TextButton("ONE MORE TIME", skin, "default");
@@ -152,6 +163,7 @@ public class GameOverScreen implements Screen
 
 		// putting stuff together
 		table.add(heading).spaceBottom(100).row();
+		table.add(lineOne).spaceBottom(20f).row();
 		table.add(buttonPlay).spaceBottom(15).row();
 		table.add(buttonQuit).spaceBottom(15).row();
 
@@ -214,6 +226,7 @@ public class GameOverScreen implements Screen
 	@Override
 	public void dispose() 
 	{
+		effect.dispose();
 		stage.dispose();
 		skin.dispose();
 	}

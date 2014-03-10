@@ -26,6 +26,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
@@ -97,8 +98,9 @@ public class Intro implements Screen
 	@Override
 	public void resize(int width, int height) 
 	{
-		// TODO Auto-generated method stub
-
+		stage.setViewport(width, height, true);
+		table.invalidateHierarchy();
+		vrg.resize(width, height);
 	}
 
 	@Override
@@ -114,8 +116,7 @@ public class Intro implements Screen
 		table.setFillParent(true);
 
 		// creating heading
-		Label heading = new Label("THE STORY", skin, "big");
-		heading.setFontScale(2);
+		Image heading = new Image(vrg.atlas.findRegion("storyWhite_BETA"));
 		
 		//creating the story
 		Label lineOne = new Label("You've been hired to take down MEGACOM, an " +

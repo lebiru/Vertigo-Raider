@@ -97,7 +97,9 @@ public class WinScreen implements Screen
 	@Override
 	public void resize(int width, int height) 
 	{
-
+		stage.setViewport(width, height, true);
+		table.invalidateHierarchy();
+		vrg.resize(width, height);
 	}
 
 	@Override
